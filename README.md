@@ -12,11 +12,29 @@ cargo build --all
 ```
 
 ### Format
+Install the nightly version of rustfmt
+```
+rustup toolchain install nightly
+```
+To install:
+```
+rustup component add rustfmt --toolchain nightly
+```
+To run:
 ```
 cargo +nightly fmt
 ```
 
 ### Lint
+Install the nightly version of rustfmt
+```
+rustup toolchain install nightly
+```
+To install:
+```
+rustup component add clippy --toolchain nightly
+```
+To run:
 ```
 cargo clippy --all --all-targets --release
 ```
