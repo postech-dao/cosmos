@@ -44,6 +44,31 @@ cargo clippy --all --all-targets --release
 cargo test -all
 ```
 
+### Public Juno Nodes
+
+```
+Mainnet RPC+LCD:
+https://rpc-juno.itastakers.com/
+https://lcd-juno.itastakers.com/
+
+Testnet SmartContracts Code Explorer:
+https://blueprints.juno.giansalex.dev/#/
+
+testnet explorer:
+https://explorer.uni.chaintools.tech/uni
+https://testnet.mintscan.io/juno-testnet
+https://testnet.juno.explorers.guru/
+
+Testnet RPC+LCD:
+- https://rpc.uni.junonetwork.io/
+- https://api.uni.junonetwork.io/
+- https://rpc.uni.juno.deuslabs.fi/
+- https://lcd.uni.juno.deuslabs.fi/
+- https://rpc.uni.junomint.com:443/
+- https://api.uni.junomint.com:443/
+- https://uni-api.blockpane.com/ # RPC and LCD
+```
+
 ### How to contribute
 1. Fork this repository.
 2. Clone your forked repository in your local environment.
