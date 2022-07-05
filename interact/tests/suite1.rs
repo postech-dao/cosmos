@@ -22,6 +22,7 @@ impl Config {
     }
 }
 
+#[ignore]
 #[tokio::test]
 async fn check_connection() {
     let _config = Config::read_from_env();
@@ -29,6 +30,7 @@ async fn check_connection() {
     unimplemented!();
 }
 
+#[ignore]
 #[tokio::test]
 async fn check_block_number() {
     let _config = Config::read_from_env();
@@ -37,6 +39,7 @@ async fn check_block_number() {
     unimplemented!();
 }
 
+#[ignore]
 #[tokio::test]
 async fn check_account() {
     let _config = Config::read_from_env();
@@ -44,6 +47,7 @@ async fn check_account() {
     unimplemented!();
 }
 
+#[ignore]
 #[tokio::test]
 async fn upload_modify_and_query() {
     let _config = Config::read_from_env();
