@@ -1,0 +1,6 @@
+{
+    "full_node_url": "https://example.com",
+    "account_public": "example.testnet.public",
+    "account_private": "example.testnet.private",
+    "wasm_binary_path": "example/path"
+}
