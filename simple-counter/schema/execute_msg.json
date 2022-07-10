@@ -1,0 +1,50 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ExecuteMsg",
+  "oneOf": [
+    {
+      "type": "object",
+      "required": [
+        "increment"
+      ],
+      "properties": {
+        "increment": {
+          "type": "object",
+          "required": [
+            "count"
+          ],
+          "properties": {
+            "count": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "reset"
+      ],
+      "properties": {
+        "reset": {
+          "type": "object",
+          "required": [
+            "count"
+          ],
+          "properties": {
+            "count": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  ]
+}
