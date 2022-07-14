@@ -1,3 +1,4 @@
+use pdao_cosmos_interact::*;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -39,12 +40,33 @@ async fn check_block_number() {
     unimplemented!();
 }
 
+/// by requesting the full node, checks whether the account given by the config has enough native token to pay gas fee
 #[ignore]
 #[tokio::test]
 async fn check_account() {
     let _config = Config::read_from_env();
-    // by requesting the full node, check whether the account given by the config has enough native token to pay gas fee
-    unimplemented!();
+
+    let rest_api_endpoint = "TODO";
+    let target_address = "TODO";
+    let min_balance = 1234; // TODO;
+
+    let client = reqwest::Client::new();
+    let response = request(
+        &client,
+        &format!(
+            "https://{}/cosmos/bank/v1beta1/balances/{}",
+            rest_api_endpoint, target_address
+        ),
+        None,
+    )
+    .await
+    .unwrap();
+
+    let current_balance = response["balances"].as_array().unwrap()[0]["amount"]
+        .as_str()
+        .unwrap();
+
+    assert!(min_balance <= current_balance.parse::<u64>().unwrap());
 }
 
 #[ignore]
