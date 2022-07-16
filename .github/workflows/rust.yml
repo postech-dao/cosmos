@@ -33,6 +33,7 @@ jobs:
         with:
           command: clippy
           args: -- -D warnings
+
   test:
     name: cargo test
     runs-on: ubuntu-latest
@@ -47,7 +48,37 @@ jobs:
           toolchain: stable
           override: true
 
-      - name: Run cargo test
-        uses: actions-rs/cargo@v1
+      - name: Run cargo test in interact
+        working-directory: interact
+        run: cargo test
+
+      - name: Run cargo test in simple counter
+        working-directory: simple-counter
+        run: cargo unit-test
+
+  build:
+    name: cargo build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Install stable toolchain
+        uses: actions-rs/toolchain@v1
         with:
-          command: test
+          profile: minimal
+          toolchain: stable
+          override: true
+          target: wasm32-unknown-unknown
+
+      - name: build interact
+        working-directory: interact
+        run: cargo build
+
+      - name: build simple-counter
+        working-directory: simple-counter
+        run: cargo wasm
+
+      - name: build schema for simple-counter
+        working-directory: simple-counter
+        run: cargo schema
