@@ -109,10 +109,7 @@ mod test {
         let mut deps = mock_dependencies();
         let auth = get_auth_vec();
 
-        let msg = InstantiateMsg {
-            count: 17,
-            auth: auth,
-        };
+        let msg = InstantiateMsg { count: 17, auth };
         let info = mock_info("creator", &coins(1000, "earth"));
 
         // we can just call .unwrap() to assert this was a success
@@ -130,10 +127,7 @@ mod test {
         let mut deps = mock_dependencies();
         let auth = get_auth_vec();
 
-        let msg = InstantiateMsg {
-            count: 17,
-            auth: auth,
-        };
+        let msg = InstantiateMsg { count: 17, auth };
         let info = mock_info("creator", &coins(2, "token"));
         let _res = instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
 
@@ -153,10 +147,7 @@ mod test {
         let mut deps = mock_dependencies();
         let auth = get_auth_vec();
 
-        let msg = InstantiateMsg {
-            count: 17,
-            auth: auth,
-        };
+        let msg = InstantiateMsg { count: 17, auth };
         let info = mock_info("creator", &coins(2, "token"));
         let _res = instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
 
