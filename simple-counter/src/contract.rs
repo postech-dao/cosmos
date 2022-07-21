@@ -60,7 +60,6 @@ pub fn try_increment(
     Ok(Response::new().add_attribute("method", "try_increment"))
 }
 
-
 pub fn try_reset(deps: DepsMut, info: MessageInfo, count: u64) -> Result<Response, ContractError> {
     STATE.update(deps.storage, |mut state| -> Result<_, ContractError> {
         if !state.auth.contains(&info.sender) {
@@ -122,7 +121,7 @@ mod test {
         let value: CountResponse = from_binary(&res).unwrap();
         assert_eq!(17, value.count);
     }
-/*
+    /*
     #[test]
     fn auth_right() {
         let mut deps = mock_dependencies();
