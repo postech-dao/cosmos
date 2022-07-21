@@ -60,6 +60,7 @@ pub fn try_increment(
     Ok(Response::new().add_attribute("method", "try_increment"))
 }
 
+
 pub fn try_reset(deps: DepsMut, info: MessageInfo, count: u64) -> Result<Response, ContractError> {
     STATE.update(deps.storage, |mut state| -> Result<_, ContractError> {
         if !state.auth.contains(&info.sender) {
@@ -123,6 +124,59 @@ mod test {
         let res = query(deps.as_ref(), mock_env(), QueryMsg::GetCount {}).unwrap();
         let value: CountResponse = from_binary(&res).unwrap();
         assert_eq!(17, value.count);
+    }
+/*
+    #[test]
+    fn auth_right() {
+        let mut deps = mock_dependencies();
+        let auth = get_auth_vec();
+
+        let msg = InstantiateMsg {
+            count: 0,
+            auth: auth,
+        };
+        let info = mock_info("creator", &coins(1000, "earth"));
+
+        // we can just call .unwrap() to assert this was a success
+        let res = instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
+
+        // it worked, let's query the state
+        let res = query(deps.as_ref(), mock_env(), QueryMsg::GetAuth {}).unwrap();
+        let value: AuthResponse = from_binary(&res).unwrap();
+
+        let addr1 = Addr::unchecked("Windy");
+        let addr2 = Addr::unchecked("Gomesy");
+        assert_eq!(addr1, value.auth[0]);
+        assert_eq!(addr2, value.auth[1]);
+    }*/
+
+    #[test]
+    fn auth_add() {
+        let mut deps = mock_dependencies();
+        let mut auth = get_auth_vec();
+
+        let addr_new = Addr::unchecked("newAuth");
+        auth.push(addr_new);
+
+        let msg = InstantiateMsg {
+            count: 0,
+            auth: auth,
+        };
+        let info = mock_info("creator", &coins(1000, "earth"));
+
+        // we can just call .unwrap() to assert this was a success
+        let res = instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
+
+        // it worked, let's query the state
+        let res = query(deps.as_ref(), mock_env(), QueryMsg::GetAuth {}).unwrap();
+        let value: AuthResponse = from_binary(&res).unwrap();
+
+        let addr1 = Addr::unchecked("Windy");
+        let addr2 = Addr::unchecked("Gomesy");
+        let addr_new = Addr::unchecked("newAuth");
+        assert_eq!(addr1, value.auth[0]);
+        assert_eq!(addr2, value.auth[1]);
+        assert_eq!(addr_new, value.auth[2]);
     }
 
     #[test]
