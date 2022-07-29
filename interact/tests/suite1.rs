@@ -7,21 +7,70 @@ use pdao_cosmos_interact::*;
 
 use serde_json::json;
 
-#[ignore]
 #[tokio::test]
 async fn check_connection() {
-    let _config = Config::read_from_env();
+    //let _config = Config::read_from_env();
     // check whether the full node is responding by a simple request
-    unimplemented!();
+    let rest_api_endpoint = "api.uni.junonetwork.io";
+
+    let client = reqwest::Client::new();
+    let response = request(
+        &client,
+        &format!(
+            "https://{}/cosmos/distribution/v1beta1/community_pool",
+            rest_api_endpoint
+        ),
+        None,
+    )
+    .await
+    .unwrap();
+
+    let denom = response["pool"].as_array().unwrap()[0]["denom"]
+        .as_str()
+        .unwrap();
+
+    assert_eq!(denom, "ujunox");
 }
 
-#[ignore]
 #[tokio::test]
 async fn check_block_number() {
-    let _config = Config::read_from_env();
+    //let _config = Config::read_from_env();
     // check the latest block number recognized by the full node **twice** with some delay,
     // so that we can assure that the full node is properly updating its blocks
-    unimplemented!();
+    let rest_api_endpoint = "rpc.uni.junonetwork.io/";
+    let query_info = "abci_info?";
+
+    let client = reqwest::Client::new();
+    let response = request(
+        &client,
+        &format!("https://{}/{}", rest_api_endpoint, query_info),
+        None,
+    )
+    .await
+    .unwrap();
+
+    let first_block_height = response["result"]["response"]["last_block_height"]
+        .as_str()
+        .unwrap();
+
+    let mut response2 = response.clone();
+    let mut second_block_height = first_block_height;
+
+    while first_block_height == second_block_height {
+        response2 = request(
+            &client,
+            &format!("https://{}/{}", rest_api_endpoint, query_info),
+            None,
+        )
+        .await
+        .unwrap();
+
+        second_block_height = response2["result"]["response"]["last_block_height"]
+            .as_str()
+            .unwrap();
+    }
+
+    assert!(first_block_height < second_block_height);
 }
 
 /// by requesting the full node, checks whether the account given by the config has enough native token to pay gas fee
@@ -30,7 +79,7 @@ async fn check_block_number() {
 async fn check_account() {
     let _config = Config::read_from_env();
 
-    let rest_api_endpoint = "TODO";
+    let rest_api_endpoint = "api.uni.junonetwork.io";
     let target_address = "TODO";
     let min_balance = 1234; // TODO;
 
