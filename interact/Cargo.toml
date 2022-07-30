@@ -19,3 +19,5 @@ anyhow = "1.0"
 thiserror = "1.0"
 cosmrs = { version = "0.7.0", features = ["rpc", "cosmwasm"] }
 hex = "0.4.3"
+rand = "0.8.5"
+secp256k1 = {version = "0.24", features = ["rand"]}
