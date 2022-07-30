@@ -1,11 +1,15 @@
+#![cfg(feature = "dev")]
+
 use cosmrs::{
     crypto::secp256k1,
-    rpc,
+    dev, rpc,
     tx::{self, Fee, Msg, SignDoc, SignerInfo},
     Coin,
 };
 use pdao_cosmos_interact::*;
 use serde::{Deserialize, Serialize};
+use std::fs::File;
+use std::io::Read;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Config {
@@ -123,4 +127,66 @@ async fn modify_and_query() {
 
     // check the response
     unimplemented!();
+}
+
+#[ignore]
+#[tokio::test]
+async fn store_contract() {
+    let _config = Config::read_from_env();
+    // Submit a transaction that store the simple-counter contract
+
+    let sender_private_key = secp256k1::SigningKey::random();
+    let sender_public_key = sender_private_key.public_key();
+    let sender_account_id = sender_public_key.account_id("juno").unwrap();
+
+    // For paying the gas fee
+    let amount = Coin {
+        amount: 100000u32.into(),
+        denom: "ujunox".parse().unwrap(),
+    };
+
+    let mut file = File::open("./simple-counter/artifact/simple_counter.wasm").unwrap();
+    let mut data = Vec::new();
+    (file.read_to_end(&mut data));
+
+    let msg = cosmrs::cosmwasm::MsgStoreCode {
+        sender: sender_account_id.clone(),
+        wasm_byte_code: data,
+        instantiate_permission: None,
+    }
+    .to_any()
+    .unwrap();
+
+    let chain_id = "malaga-420".parse().unwrap();
+    let sequence_number = 0;
+    let gas = 100_0000;
+    let fee = Fee::from_amount_and_gas(amount.clone(), gas);
+    let timeout_height = 0u16;
+
+    let tx_body = tx::Body::new(vec![msg], "test memo", timeout_height);
+    let auth_info =
+        SignerInfo::single_direct(Some(sender_public_key), sequence_number).auth_info(fee);
+    // account_number: check at cosmos/auth/v1beta1/accounts/juno123412341234 (your address)
+    let sign_doc = SignDoc::new(&tx_body, &auth_info, &chain_id, 123456).unwrap();
+    let tx_raw = sign_doc.sign(&sender_private_key).unwrap();
+
+    let rpc_address = "https://rpc.malaga-420.cosmwasm.com:443".to_owned();
+    let rpc_client = rpc::HttpClient::new(rpc_address.as_str()).unwrap();
+    let tx_commit_response =
+        rpc::Client::broadcast_tx_commit(&rpc_client, tx_raw.to_bytes().unwrap().into())
+            .await
+            .unwrap();
+
+    // check the response
+    if tx_commit_response.check_tx.code.is_err() {
+        panic!("check_tx failed: {:?}", tx_commit_response.check_tx);
+    }
+
+    if tx_commit_response.deliver_tx.code.is_err() {
+        panic!("deliver_tx failed: {:?}", tx_commit_response.deliver_tx);
+    }
+
+    let tx = dev::poll_for_tx(&rpc_client, tx_commit_response.hash).await;
+    assert_eq!(&tx_body, &tx.body);
+    assert_eq!(&auth_info, &tx.auth_info);
 }
