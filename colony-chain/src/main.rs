@@ -1,4 +1,4 @@
-use pbc_colony_common::*;
+use pdao_colony_common::*;
 use pdao_cosmos_colony_chain::*;
 use std::sync::Arc;
 
