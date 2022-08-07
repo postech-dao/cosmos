@@ -1,7 +1,40 @@
+pub mod deploy;
+pub mod execute;
+pub mod query;
+pub mod utils;
+
 use anyhow::{anyhow, Result};
 use cosmrs::crypto;
 use reqwest::Client;
 use serde_json::Value;
+
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Config {
+    pub full_node_url: String,
+    pub account_public: String,
+    pub account_private: String,
+    pub wasm_binary_path: String,
+    pub rpc: String, // and so on
+    pub chain_id: String,
+    pub denom: String,
+    pub mnemonic: String,
+    pub password: String,
+}
+
+impl Config {
+    pub fn read_from_env() -> Self {
+        serde_json::from_str(
+            &std::fs::read_to_string(
+                std::env::var("CONFIG_PATH")
+                    .expect("Environment variable for the config file path is missing"),
+            )
+            .expect("Failed to locate the config file"),
+        )
+        .expect("Failed to parse the config")
+    }
+}
 
 pub async fn request(client: &Client, url: &str, block_number: Option<u64>) -> Result<Value> {
     let response = if let Some(block_number) = block_number {

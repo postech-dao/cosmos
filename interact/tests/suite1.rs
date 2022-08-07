@@ -1,37 +1,11 @@
-#![cfg(feature = "dev")]
-
 use cosmrs::{
+    bip32::{self},
     crypto::secp256k1,
-    dev, rpc,
-    tx::{self, Fee, Msg, SignDoc, SignerInfo},
-    Coin,
 };
+use pdao_cosmos_interact::utils::private_to_pub_and_account;
 use pdao_cosmos_interact::*;
-use serde::{Deserialize, Serialize};
-use std::fs::File;
-use std::io::Read;
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Config {
-    full_node_url: String,
-    account_public: String,
-    account_private: String,
-    wasm_binary_path: String,
-    // and so on
-}
-
-impl Config {
-    pub fn read_from_env() -> Self {
-        serde_json::from_str(
-            &std::fs::read_to_string(
-                std::env::var("TEST_CONFIG")
-                    .expect("Environment variable for the config file path is missing"),
-            )
-            .expect("Failed to locate the config file"),
-        )
-        .expect("Failed to parse the config")
-    }
-}
+use serde_json::json;
 
 #[ignore]
 #[tokio::test]
@@ -81,175 +55,165 @@ async fn check_account() {
 
 #[ignore]
 #[tokio::test]
-async fn modify_and_query() {
-    let _config = Config::read_from_env();
-    // submit a transaction that modifies its state, and query the state
+async fn test_query_get_count() {}
 
-    let sender_private_key =
-        secp256k1::SigningKey::from_bytes(&hex::decode("abcdabcdabcd").unwrap()).unwrap();
-    let sender_public_key = sender_private_key.public_key();
-    let sender_account_id = sender_public_key.account_id("juno").unwrap();
+#[ignore]
+#[tokio::test]
+async fn test_query_get_auth() {}
 
-    // For paying the gas fee
-    let amount = Coin {
-        amount: 100000u32.into(),
-        denom: "ujunox".parse().unwrap(),
-    };
+#[ignore]
+#[tokio::test]
+async fn test_execute_increment_fail() {
+    let mnemonic = "coyote electric million purchase tennis skin quiz inside helmet call glimpse pulse turkey hint maze iron festival run bomb regular legend prepare service angry".to_string();
+    let seed = bip32::Mnemonic::new(mnemonic, bip32::Language::English)
+        .unwrap()
+        .to_seed("");
+    let key: secp256k1::SigningKey = bip32::XPrv::new(seed).unwrap().into();
 
-    let msg = cosmrs::cosmwasm::MsgExecuteContract {
-        sender: sender_account_id.clone(),
-        contract: "juno12341231234".parse().unwrap(),
-        msg: serde_json::to_vec(&"OneOfTheDefineMessageInSimpleCounter").unwrap(),
-        funds: vec![amount.clone()],
-    }
-    .to_any()
-    .unwrap();
+    // This should be failed since the count is above 10
+    let msg = json!({
+        "increment": {"count": 20u64}
+    });
 
-    let chain_id = "uni-3".parse().unwrap();
-    let sequence_number = 6;
-    let gas = 100_0000;
-    let fee = Fee::from_amount_and_gas(amount.clone(), gas);
-    let timeout_height = 0u16;
-
-    let tx_body = tx::Body::new(vec![msg], "memoemo", timeout_height);
-    let auth_info =
-        SignerInfo::single_direct(Some(sender_public_key), sequence_number).auth_info(fee);
-    // account_number: check at cosmos/auth/v1beta1/accounts/juno123412341234 (your address)
-    let sign_doc = SignDoc::new(&tx_body, &auth_info, &chain_id, 123456).unwrap();
-    let tx_raw = sign_doc.sign(&sender_private_key).unwrap();
-
-    let rpc_address = "https://TENDERMINT_RPC_ADDR".to_owned();
-    let rpc_client = rpc::HttpClient::new(rpc_address.as_str()).unwrap();
-    let _tx_commit_response =
-        rpc::Client::broadcast_tx_commit(&rpc_client, tx_raw.to_bytes().unwrap().into())
-            .await
-            .unwrap();
-
-    // check the response
-    unimplemented!();
+    execute::send_execute(
+        &key,
+        "malaga-420",
+        "https://rpc.malaga-420.cosmwasm.com:443",
+        "umlg",
+        "wasm",
+        10000,
+        "wasm1rpfxxy379eq2lq8wjz0lcke9ql49p5uzx2246vx6pml7yvd954tstdaaae",
+        serde_json::to_vec(&msg).unwrap(),
+        2000000,
+        2000000,
+        None,
+        1411,
+    )
+    .await
+    // deliver_tx failed: TxResult { code: Err(5), data: None, log: Log("failed to execute message; message index: 0: Unauthorized: execute wasm contract failed"), info: Info(""), gas_wanted: Gas(2000000), gas_used: Gas(136249), events: [Event { type_str: "coin_spent", attributes: [Tag { key: Key("spender"), value: Value("wasm1quzyfdgzw42aelcdkrw2v8vnfdxsk9jkl7a4qf") }, Tag { key: Key("amount"), value: Value("2000000umlg") }] }, Event { type_str: "coin_received", attributes: [Tag { key: Key("receiver"), value: Value("wasm17xpfvakm2amg962yls6f84z3kell8c5l69j4zk") }, Tag { key: Key("amount"), value: Value("2000000umlg") }] }, Event { type_str: "transfer", attributes: [Tag { key: Key("recipient"), value: Value("wasm17xpfvakm2amg962yls6f84z3kell8c5l69j4zk") }, Tag { key: Key("sender"), value: Value("wasm1quzyfdgzw42aelcdkrw2v8vnfdxsk9jkl7a4qf") }, Tag { key: Key("amount"), value: Value("2000000umlg") }] }, Event { type_str: "message", attributes: [Tag { key: Key("sender"), value: Value("wasm1quzyfdgzw42aelcdkrw2v8vnfdxsk9jkl7a4qf") }] }, Event { type_str: "tx", attributes: [Tag { key: Key("fee"), value: Value("2000000umlg") }] }, Event { type_str: "tx", attributes: [Tag { key: Key("acc_seq"), value: Value("wasm1quzyfdgzw42aelcdkrw2v8vnfdxsk9jkl7a4qf/5") }] }, Event { type_str: "tx", attributes: [Tag { key: Key("signature"), value: Value("dHGDLpzY8zHIO/E1K6MHTNWkbF5RMlYbYzTzlIqpjzgfUfk7EO7L0hC7mHoJO+9lQJhV01JJMnAWDQToe+RogA==") }] }], codespace: Codespace("wasm") }
 }
 
 #[ignore]
 #[tokio::test]
-async fn store_contract() {
-    let _config = Config::read_from_env();
-    // Submit a transaction that store the simple-counter contract
+async fn test_execute_increment() {
+    let mnemonic = "coyote electric million purchase tennis skin quiz inside helmet call glimpse pulse turkey hint maze iron festival run bomb regular legend prepare service angry".to_string();
+    let seed = bip32::Mnemonic::new(mnemonic, bip32::Language::English)
+        .unwrap()
+        .to_seed("");
+    let key: secp256k1::SigningKey = bip32::XPrv::new(seed).unwrap().into();
 
-    let sender_private_key = secp256k1::SigningKey::random();
-    let sender_public_key = sender_private_key.public_key();
-    let sender_account_id = sender_public_key.account_id("juno").unwrap();
+    let msg = json!({
+        "increment": {"count": 5u64}
+    });
 
-    // For paying the gas fee
-    let amount = Coin {
-        amount: 100000u32.into(),
-        denom: "umlg".parse().unwrap(),
-    };
-
-    let mut file = File::open("./simple-counter/artifact/simple_counter.wasm").unwrap();
-    let mut data = Vec::new();
-    (file.read_to_end(&mut data));
-
-    let msg = cosmrs::cosmwasm::MsgStoreCode {
-        sender: sender_account_id.clone(),
-        wasm_byte_code: data,
-        instantiate_permission: None,
-    }
-    .to_any()
-    .unwrap();
-
-    let chain_id = "malaga-420".parse().unwrap();
-    let sequence_number = 0;
-    let gas = 100_0000;
-    let fee = Fee::from_amount_and_gas(amount.clone(), gas);
-    let timeout_height = 0u16;
-
-    let tx_body = tx::Body::new(vec![msg], "test memo", timeout_height);
-    let auth_info =
-        SignerInfo::single_direct(Some(sender_public_key), sequence_number).auth_info(fee);
-    // account_number: check at cosmos/auth/v1beta1/accounts/juno123412341234 (your address)
-    let sign_doc = SignDoc::new(&tx_body, &auth_info, &chain_id, 123456).unwrap();
-    let tx_raw = sign_doc.sign(&sender_private_key).unwrap();
-
-    let rpc_address = "https://rpc.malaga-420.cosmwasm.com:443".to_owned();
-    let rpc_client = rpc::HttpClient::new(rpc_address.as_str()).unwrap();
-    let tx_commit_response =
-        rpc::Client::broadcast_tx_commit(&rpc_client, tx_raw.to_bytes().unwrap().into())
-            .await
-            .unwrap();
-
-    // check the response
-    if tx_commit_response.check_tx.code.is_err() {
-        panic!("check_tx failed: {:?}", tx_commit_response.check_tx);
-    }
-
-    if tx_commit_response.deliver_tx.code.is_err() {
-        panic!("deliver_tx failed: {:?}", tx_commit_response.deliver_tx);
-    }
-
-    let tx = dev::poll_for_tx(&rpc_client, tx_commit_response.hash).await;
-    assert_eq!(&tx_body, &tx.body);
-    assert_eq!(&auth_info, &tx.auth_info);
+    execute::send_execute(
+        &key,
+        "malaga-420",
+        "https://rpc.malaga-420.cosmwasm.com:443",
+        "umlg",
+        "wasm",
+        10000,
+        "wasm1rpfxxy379eq2lq8wjz0lcke9ql49p5uzx2246vx6pml7yvd954tstdaaae",
+        serde_json::to_vec(&msg).unwrap(),
+        2000000,
+        2000000,
+        None,
+        1411,
+    )
+    .await
+    // [{"events":[{"type":"coin_received","attributes":[{"key":"receiver","value":"wasm1rpfxxy379eq2lq8wjz0lcke9ql49p5uzx2246vx6pml7yvd954tstdaaae"},{"key":"amount","value":"10000umlg"}]},{"type":"coin_spent","attributes":[{"key":"spender","value":"wasm1quzyfdgzw42aelcdkrw2v8vnfdxsk9jkl7a4qf"},{"key":"amount","value":"10000umlg"}]},{"type":"execute","attributes":[{"key":"_contract_address","value":"wasm1rpfxxy379eq2lq8wjz0lcke9ql49p5uzx2246vx6pml7yvd954tstdaaae"}]},{"type":"message","attributes":[{"key":"action","value":"/cosmwasm.wasm.v1.MsgExecuteContract"},{"key":"module","value":"wasm"},{"key":"sender","value":"wasm1quzyfdgzw42aelcdkrw2v8vnfdxsk9jkl7a4qf"}]},{"type":"transfer","attributes":[{"key":"recipient","value":"wasm1rpfxxy379eq2lq8wjz0lcke9ql49p5uzx2246vx6pml7yvd954tstdaaae"},{"key":"sender","value":"wasm1quzyfdgzw42aelcdkrw2v8vnfdxsk9jkl7a4qf"},{"key":"amount","value":"10000umlg"}]},{"type":"wasm","attributes":[{"key":"_contract_address","value":"wasm1rpfxxy379eq2lq8wjz0lcke9ql49p5uzx2246vx6pml7yvd954tstdaaae"},{"key":"method","value":"try_increment"}]}]}]
 }
 
 #[ignore]
 #[tokio::test]
-async fn instantiate_contract() {
-    let _config = Config::read_from_env();
-    // Submit a transaction that store the simple-counter contract
+async fn test_execute_reset() {
+    let mnemonic = "coyote electric million purchase tennis skin quiz inside helmet call glimpse pulse turkey hint maze iron festival run bomb regular legend prepare service angry".to_string();
+    let seed = bip32::Mnemonic::new(mnemonic, bip32::Language::English)
+        .unwrap()
+        .to_seed("");
+    let key: secp256k1::SigningKey = bip32::XPrv::new(seed).unwrap().into();
 
-    let sender_private_key = secp256k1::SigningKey::random();
-    let sender_public_key = sender_private_key.public_key();
-    let sender_account_id = sender_public_key.account_id("juno").unwrap();
+    // This should be failed since the count is above 10
+    let msg = json!({
+        "reset": {"count": 50u64}
+    });
 
-    // For paying the gas fee
-    let amount = Coin {
-        amount: 200000u32.into(),
-        denom: "umlg".parse().unwrap(),
-    };
+    execute::send_execute(
+        &key,
+        "malaga-420",
+        "https://rpc.malaga-420.cosmwasm.com:443",
+        "umlg",
+        "wasm",
+        10000,
+        "wasm1rpfxxy379eq2lq8wjz0lcke9ql49p5uzx2246vx6pml7yvd954tstdaaae",
+        serde_json::to_vec(&msg).unwrap(),
+        2000000,
+        2000000,
+        None,
+        1411,
+    )
+    .await
+    // [{"events":[{"type":"coin_received","attributes":[{"key":"receiver","value":"wasm1rpfxxy379eq2lq8wjz0lcke9ql49p5uzx2246vx6pml7yvd954tstdaaae"},{"key":"amount","value":"10000umlg"}]},{"type":"coin_spent","attributes":[{"key":"spender","value":"wasm1quzyfdgzw42aelcdkrw2v8vnfdxsk9jkl7a4qf"},{"key":"amount","value":"10000umlg"}]},{"type":"execute","attributes":[{"key":"_contract_address","value":"wasm1rpfxxy379eq2lq8wjz0lcke9ql49p5uzx2246vx6pml7yvd954tstdaaae"}]},{"type":"message","attributes":[{"key":"action","value":"/cosmwasm.wasm.v1.MsgExecuteContract"},{"key":"module","value":"wasm"},{"key":"sender","value":"wasm1quzyfdgzw42aelcdkrw2v8vnfdxsk9jkl7a4qf"}]},{"type":"transfer","attributes":[{"key":"recipient","value":"wasm1rpfxxy379eq2lq8wjz0lcke9ql49p5uzx2246vx6pml7yvd954tstdaaae"},{"key":"sender","value":"wasm1quzyfdgzw42aelcdkrw2v8vnfdxsk9jkl7a4qf"},{"key":"amount","value":"10000umlg"}]},{"type":"wasm","attributes":[{"key":"_contract_address","value":"wasm1rpfxxy379eq2lq8wjz0lcke9ql49p5uzx2246vx6pml7yvd954tstdaaae"},{"key":"method","value":"reset"}]}]}]
+}
 
-    let contract_code_id: u64 = 1234;
+#[ignore]
+#[tokio::test]
+async fn test_store_contract() {
+    // Sender publickey {"@type":"/cosmos.crypto.secp256k1.PubKey","key":"Aggx3Gp4SJOHzZK4WDen/j5EXutf78JB87DQA5/7Z59y"}
+    // Sender account id wasm1quzyfdgzw42aelcdkrw2v8vnfdxsk9jkl7a4qf
+    // Mnemonic "coyote electric million purchase tennis skin quiz inside helmet call glimpse pulse turkey hint maze iron festival run bomb regular legend prepare service angry"
+    let mnemonic = "coyote electric million purchase tennis skin quiz inside helmet call glimpse pulse turkey hint maze iron festival run bomb regular legend prepare service angry".to_string();
+    let seed = bip32::Mnemonic::new(mnemonic, bip32::Language::English)
+        .unwrap()
+        .to_seed("");
+    let key: secp256k1::SigningKey = bip32::XPrv::new(seed).unwrap().into();
+    deploy::store_contract(
+        &key,
+        "../simple-counter/artifacts/simple_counter-aarch64.wasm",
+        "https://rpc.malaga-420.cosmwasm.com:443",
+        "malaga-420",
+        1411,
+        "umlg",
+        None,
+        2000000,
+        2000000,
+        "wasm",
+    )
+    .await;
+    // [{"events":[{"type":"message","attributes":[{"key":"action","value":"/cosmwasm.wasm.v1.MsgStoreCode"},{"key":"module","value":"wasm"},{"key":"sender","value":"wasm1quzyfdgzw42aelcdkrw2v8vnfdxsk9jkl7a4qf"}]},{"type":"store_code","attributes":[{"key":"code_id","value":"547"}]}]}]
+    // code_id = 547
+}
 
-    let msg_send = cosmrs::cosmwasm::MsgInstantiateContract {
-        sender: sender_account_id.clone(),
-        admin: None,
-        code_id: contract_code_id,
-        label: None,
-        msg: "Instantiate simple counter".as_bytes(),
-        funds: vec![amount.clone()],
-    }
-    .to_any()
-    .unwrap();
+#[ignore]
+#[tokio::test]
+async fn test_instantiate_contract() {
+    let mnemonic = "coyote electric million purchase tennis skin quiz inside helmet call glimpse pulse turkey hint maze iron festival run bomb regular legend prepare service angry".to_string();
+    let seed = bip32::Mnemonic::new(mnemonic, bip32::Language::English)
+        .unwrap()
+        .to_seed("");
+    let key: secp256k1::SigningKey = bip32::XPrv::new(seed).unwrap().into();
+    let (_, sender_account_id) = private_to_pub_and_account(&key, "wasm");
 
-    let chain_id = "malaga-420".parse().unwrap();
-    let sequence_number = 0;
-    let gas = 100_0000;
-    let fee = Fee::from_amount_and_gas(amount.clone(), gas);
-    let timeout_height = 0u16;
+    let msg = json!({
+        "count": 100u64,
+        "auth": [sender_account_id.to_string()]
+    });
 
-    let tx_body = tx::Body::new(vec![msg_send], "test memo", timeout_height);
-    let auth_info =
-        SignerInfo::single_direct(Some(sender_public_key), sequence_number).auth_info(fee);
-    // account_number: check at cosmos/auth/v1beta1/accounts/juno123412341234 (your address)
-    let sign_doc = SignDoc::new(&tx_body, &auth_info, &chain_id, 123456).unwrap();
-    let tx_raw = sign_doc.sign(&sender_private_key).unwrap();
-
-    let rpc_address = "https://rpc.malaga-420.cosmwasm.com:443".to_owned();
-    let rpc_client = rpc::HttpClient::new(rpc_address.as_str()).unwrap();
-    let tx_commit_response =
-        rpc::Client::broadcast_tx_commit(&rpc_client, tx_raw.to_bytes().unwrap().into())
-            .await
-            .unwrap();
-
-    // check the response
-    if tx_commit_response.check_tx.code.is_err() {
-        panic!("check_tx failed: {:?}", tx_commit_response.check_tx);
-    }
-
-    if tx_commit_response.deliver_tx.code.is_err() {
-        panic!("deliver_tx failed: {:?}", tx_commit_response.deliver_tx);
-    }
-
-    let tx = dev::poll_for_tx(&rpc_client, tx_commit_response.hash).await;
-    assert_eq!(&tx_body, &tx.body);
-    assert_eq!(&auth_info, &tx.auth_info);
+    deploy::instantiate_contract(
+        &key,
+        547,
+        "https://rpc.malaga-420.cosmwasm.com:443",
+        "malaga-420",
+        1411,
+        "umlg",
+        None,
+        serde_json::to_vec(&msg).unwrap(),
+        2000000,
+        2000000,
+        "wasm",
+        10000,
+    )
+    .await;
+    // [{"events":[{"type":"coin_received","attributes":[{"key":"receiver","value":"wasm1rpfxxy379eq2lq8wjz0lcke9ql49p5uzx2246vx6pml7yvd954tstdaaae"},{"key":"amount","value":"10000umlg"}]},{"type":"coin_spent","attributes":[{"key":"spender","value":"wasm1quzyfdgzw42aelcdkrw2v8vnfdxsk9jkl7a4qf"},{"key":"amount","value":"10000umlg"}]},{"type":"instantiate","attributes":[{"key":"_contract_address","value":"wasm1rpfxxy379eq2lq8wjz0lcke9ql49p5uzx2246vx6pml7yvd954tstdaaae"},{"key":"code_id","value":"547"}]},{"type":"message","attributes":[{"key":"action","value":"/cosmwasm.wasm.v1.MsgInstantiateContract"},{"key":"module","value":"wasm"},{"key":"sender","value":"wasm1quzyfdgzw42aelcdkrw2v8vnfdxsk9jkl7a4qf"}]},{"type":"transfer","attributes":[{"key":"recipient","value":"wasm1rpfxxy379eq2lq8wjz0lcke9ql49p5uzx2246vx6pml7yvd954tstdaaae"},{"key":"sender","value":"wasm1quzyfdgzw42aelcdkrw2v8vnfdxsk9jkl7a4qf"},{"key":"amount","value":"10000umlg"}]},{"type":"wasm","attributes":[{"key":"_contract_address","value":"wasm1rpfxxy379eq2lq8wjz0lcke9ql49p5uzx2246vx6pml7yvd954tstdaaae"},{"key":"method","value":"instantiate"},{"key":"auth","value":"wasm1quzyfdgzw42aelcdkrw2v8vnfdxsk9jkl7a4qf"},{"key":"count","value":"100"}]}]}]
+    // contract_address = wasm1rpfxxy379eq2lq8wjz0lcke9ql49p5uzx2246vx6pml7yvd954tstdaaae
 }
