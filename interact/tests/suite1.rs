@@ -6,6 +6,7 @@ use pdao_cosmos_interact::utils::private_to_pub_and_account;
 use pdao_cosmos_interact::*;
 
 use serde_json::json;
+use base64;
 
 #[tokio::test]
 async fn check_connection() {
@@ -104,11 +105,37 @@ async fn check_account() {
 
 #[ignore]
 #[tokio::test]
-async fn test_query_get_count() {}
+async fn test_query_get_count() {
+    let msg = json!({
+        "getcount": {}
+    });
+
+    let encode_msg = base64::encode(&serde_json::to_vec(&msg).unwrap());
+
+    query::send_query(
+        "api.malaga-420.cosmwasm.com:443",
+        "wasm1rpfxxy379eq2lq8wjz0lcke9ql49p5uzx2246vx6pml7yvd954tstdaaae",
+        encode_msg.as_str()
+    )
+    .await
+}
 
 #[ignore]
 #[tokio::test]
-async fn test_query_get_auth() {}
+async fn test_query_get_auth() {
+    let msg = json!({
+        "getauth": {}
+    });
+
+    let encode_msg = base64::encode(&serde_json::to_vec(&msg).unwrap());
+
+    query::send_query(
+        "api.malaga-420.cosmwasm.com:443",
+        "wasm1rpfxxy379eq2lq8wjz0lcke9ql49p5uzx2246vx6pml7yvd954tstdaaae",
+        encode_msg.as_str()
+    )
+    .await
+}
 
 #[ignore]
 #[tokio::test]
