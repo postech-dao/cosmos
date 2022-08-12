@@ -1,23 +1,21 @@
 use crate::request;
+use serde_json::Value;
 
 pub async fn send_query(
     rest_api_endpoint: &str,
     contract_address: &str,
-    encode_msg: &str
-){
+    encode_msg: &str,
+) -> Value {
     let client = reqwest::Client::new();
-    let response = request(
+
+    request(
         &client,
         &format!(
-            "https://{}/juno/wasm/v1beta1/contract/{}/store?query_msg={}",
+            "https://{}/cosmwasm/wasm/v1/contract/{}/smart/{}",
             rest_api_endpoint, contract_address, encode_msg
         ),
         None,
     )
     .await
-    .unwrap();
-    
-    println!("{}", response);
-    //TODO: check response and test
-    //assert_eq!(response["count"], "0");
+    .unwrap()
 }

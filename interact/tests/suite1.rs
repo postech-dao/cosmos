@@ -1,18 +1,18 @@
+use base64;
 use cosmrs::{
     bip32::{self},
     crypto::secp256k1,
 };
 use pdao_cosmos_interact::utils::private_to_pub_and_account;
 use pdao_cosmos_interact::*;
-
 use serde_json::json;
-use base64;
 
+#[ignore]
 #[tokio::test]
 async fn check_connection() {
     //let _config = Config::read_from_env();
     // check whether the full node is responding by a simple request
-    let rest_api_endpoint = "api.uni.junonetwork.io";
+    let rest_api_endpoint = "api.malaga-420.cosmwasm.com";
 
     let client = reqwest::Client::new();
     let response = request(
@@ -26,23 +26,24 @@ async fn check_connection() {
     .await
     .unwrap();
 
-    let denom = response["pool"].as_array().unwrap()[0]["denom"]
+    let denom = response["pool"].as_array().unwrap()[1]["denom"]
         .as_str()
         .unwrap();
 
-    assert_eq!(denom, "ujunox");
+    assert_eq!(denom, "umlg");
 }
 
+#[ignore]
 #[tokio::test]
 async fn check_block_number() {
     //let _config = Config::read_from_env();
     // check the latest block number recognized by the full node **twice** with some delay,
     // so that we can assure that the full node is properly updating its blocks
-    let rest_api_endpoint = "rpc.uni.junonetwork.io/";
+    let rest_api_endpoint = "rpc.malaga-420.cosmwasm.com";
     let query_info = "abci_info?";
 
     let client = reqwest::Client::new();
-    let response = request(
+    let response_first = request(
         &client,
         &format!("https://{}/{}", rest_api_endpoint, query_info),
         None,
@@ -50,15 +51,15 @@ async fn check_block_number() {
     .await
     .unwrap();
 
-    let first_block_height = response["result"]["response"]["last_block_height"]
+    let first_block_height = response_first["result"]["response"]["last_block_height"]
         .as_str()
         .unwrap();
 
-    let mut response2 = response.clone();
+    let mut response_second = response_first.clone();
     let mut second_block_height = first_block_height;
 
     while first_block_height == second_block_height {
-        response2 = request(
+        response_second = request(
             &client,
             &format!("https://{}/{}", rest_api_endpoint, query_info),
             None,
@@ -66,7 +67,7 @@ async fn check_block_number() {
         .await
         .unwrap();
 
-        second_block_height = response2["result"]["response"]["last_block_height"]
+        second_block_height = response_second["result"]["response"]["last_block_height"]
             .as_str()
             .unwrap();
     }
@@ -78,11 +79,11 @@ async fn check_block_number() {
 #[ignore]
 #[tokio::test]
 async fn check_account() {
-    let _config = Config::read_from_env();
+    //let _config = Config::read_from_env();
 
-    let rest_api_endpoint = "api.uni.junonetwork.io";
-    let target_address = "TODO";
-    let min_balance = 1234; // TODO;
+    let rest_api_endpoint = "api.malaga-420.cosmwasm.com";
+    let target_address = "wasm1rpfxxy379eq2lq8wjz0lcke9ql49p5uzx2246vx6pml7yvd954tstdaaae"; //TODO: needs to be changed
+    let min_balance = 10000u64;
 
     let client = reqwest::Client::new();
     let response = request(
@@ -96,9 +97,13 @@ async fn check_account() {
     .await
     .unwrap();
 
+    println!("{}", response);
+
     let current_balance = response["balances"].as_array().unwrap()[0]["amount"]
         .as_str()
         .unwrap();
+
+    println!("{}", current_balance);
 
     assert!(min_balance <= current_balance.parse::<u64>().unwrap());
 }
@@ -107,34 +112,44 @@ async fn check_account() {
 #[tokio::test]
 async fn test_query_get_count() {
     let msg = json!({
-        "getcount": {}
+        "get_count": {}
     });
 
     let encode_msg = base64::encode(&serde_json::to_vec(&msg).unwrap());
 
-    query::send_query(
-        "api.malaga-420.cosmwasm.com:443",
+    let response = query::send_query(
+        "api.malaga-420.cosmwasm.com",
         "wasm1rpfxxy379eq2lq8wjz0lcke9ql49p5uzx2246vx6pml7yvd954tstdaaae",
-        encode_msg.as_str()
+        encode_msg.as_str(),
     )
-    .await
+    .await;
+
+    let count = response["data"]["count"].as_u64().unwrap();
+
+    assert_eq!(count, 50);
 }
 
 #[ignore]
 #[tokio::test]
 async fn test_query_get_auth() {
     let msg = json!({
-        "getauth": {}
+        "get_auth": {}
     });
 
     let encode_msg = base64::encode(&serde_json::to_vec(&msg).unwrap());
 
-    query::send_query(
-        "api.malaga-420.cosmwasm.com:443",
+    let response = query::send_query(
+        "api.malaga-420.cosmwasm.com",
         "wasm1rpfxxy379eq2lq8wjz0lcke9ql49p5uzx2246vx6pml7yvd954tstdaaae",
-        encode_msg.as_str()
+        encode_msg.as_str(),
     )
-    .await
+    .await;
+
+    let auth = response["data"]["auth"].as_array().unwrap()[0]
+        .as_str()
+        .unwrap();
+
+    assert_eq!(auth, "wasm1quzyfdgzw42aelcdkrw2v8vnfdxsk9jkl7a4qf");
 }
 
 #[ignore]
