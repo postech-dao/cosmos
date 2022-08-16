@@ -11,8 +11,8 @@ blake3 = "1.3.1"
 tokio = { version = "1.0", features = ["full"] }
 rust_decimal = "1.25.0"
 rust_decimal_macros = "1.25.0"
-pbc-colony-common = { version = "0.0.0", git = "https://github.com/postech-dao/beacon-chain" }
-pbc-contract-common = { version = "0.0.0", git = "https://github.com/postech-dao/beacon-chain" }
+pdao-colony-common = { version = "0.0.0" }
+pdao-colony-contract-common = { version = "0.0.0" }
 serde-tc = "0.3.3"
 serde_json = { version = "1.0" }
 anyhow = { version = "1.0" }

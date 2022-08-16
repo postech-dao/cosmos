@@ -1,6 +1,6 @@
 use async_trait::async_trait;
-use pbc_colony_common::*;
-use pbc_contract_common::*;
+use pdao_colony_common::*;
+use pdao_colony_contract_common::*;
 use rust_decimal::prelude::*;
 use rust_decimal_macros::dec;
 use std::collections::HashMap;
@@ -11,6 +11,13 @@ pub struct Juno {}
 impl ColonyChain for Juno {
     async fn get_chain_name(&self) -> String {
         "juno".to_owned()
+    }
+
+    async fn get_last_block(&self) -> Result<Block, Error> {
+        Ok(Block {
+            height: 0,
+            timestamp: 0,
+        })
     }
 
     async fn check_connection(&self) -> Result<(), Error> {
