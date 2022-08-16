@@ -1,11 +1,14 @@
-# cosmos
+# Cosmos-colony
+This repository implements the colony chain interface for Cosmos that can interact with PDAO blockchain.
 
-## Reference
+
+## Dev
+
+### Reference
 [Juno](https://docs.junonetwork.io/juno/readme)
 [cosmwasm](https://docs.cosmwasm.com/docs/1.0/)
 [cosmos sdk](https://docs.cosmos.network/)
 
-## Run
 ### Build
 ```
 cargo build --all
@@ -40,6 +43,12 @@ cargo clippy --all --all-targets --release
 ```
 
 ### Test
+#### Get tokens from the faucet in malaga testnet
+```shellscript
+./script/malaga_faucet.sh
+```
+
+
 ```
 TEST_CONFIG=test_config_example.json cargo test --all
 ```

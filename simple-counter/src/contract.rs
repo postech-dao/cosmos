@@ -49,7 +49,7 @@ pub fn try_increment(
     info: MessageInfo,
     count: u64,
 ) -> Result<Response, ContractError> {
-    STATE.update(deps.storage, |mut state| -> Result<_, ContractError> {
+    let result = STATE.update(deps.storage, |mut state| -> Result<_, ContractError> {
         if (count > 10) || (!state.auth.contains(&info.sender)) {
             return Err(ContractError::Unauthorized {});
         }
@@ -57,7 +57,9 @@ pub fn try_increment(
         Ok(state)
     })?;
 
-    Ok(Response::new().add_attribute("method", "try_increment"))
+    Ok(Response::new()
+        .add_attribute("method", "try_increment")
+        .add_attribute("count", result.count.to_string()))
 }
 
 pub fn try_reset(deps: DepsMut, info: MessageInfo, count: u64) -> Result<Response, ContractError> {
