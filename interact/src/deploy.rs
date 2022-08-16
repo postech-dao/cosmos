@@ -9,6 +9,7 @@ use std::io::Read;
 
 use super::utils::private_to_pub_and_account;
 
+#[allow(clippy::too_many_arguments)]
 pub async fn store_contract(
     sender_private_key: &crypto::secp256k1::SigningKey,
     path: &str,
@@ -89,6 +90,7 @@ pub async fn store_contract(
     assert_eq!(&auth_info, &tx.auth_info);
 }
 
+#[allow(clippy::too_many_arguments)]
 pub async fn instantiate_contract(
     sender_private_key: &crypto::secp256k1::SigningKey,
     code_id: u64,
