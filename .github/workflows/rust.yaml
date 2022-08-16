@@ -24,10 +24,15 @@ jobs:
 
       - name: Run cargo fmt
         uses: actions-rs/cargo@v1
-        run: cargo +nightly fmt
+        with:
+          command: fmt
+          args: --all -- --check
 
       - name: Run cargo clippy
-        run: cargo clippy --all --all-targets --release
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: -- -D warnings
 
   test:
     name: cargo test
