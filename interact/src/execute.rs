@@ -6,6 +6,7 @@ use cosmrs::{
 
 use super::utils::private_to_pub_and_account;
 
+#[allow(clippy::too_many_arguments)]
 pub async fn send_execute(
     sender_private_key: &crypto::secp256k1::SigningKey,
     chain_id: &str,
