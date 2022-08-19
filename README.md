@@ -1,13 +1,7 @@
 # Cosmos-colony
 This repository implements the colony chain interface for Cosmos that can interact with PDAO blockchain.
 
-
-## Dev
-
-### Reference
-[Juno](https://docs.junonetwork.io/juno/readme)
-[cosmwasm](https://docs.cosmwasm.com/docs/1.0/)
-[cosmos sdk](https://docs.cosmos.network/)
+## Development
 
 ### Build
 ```
@@ -51,6 +45,21 @@ cargo clippy --all --all-targets --release
 
 ```
 TEST_CONFIG=test_config_example.json cargo test --all
+```
+
+### Optimize contracts
+```
+docker run --rm -v "$(pwd)":/code \
+  --mount type=volume,source="$(basename "$(pwd)")_cache",target=/code/target \
+  --mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \
+  cosmwasm/workspace-optimizer:0.12.6
+```
+M1
+```
+docker run --rm -v "$(pwd)":/code \
+  --mount type=volume,source="$(basename "$(pwd)")_cache",target=/code/target \
+  --mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \
+  cosmwasm/workspace-optimizer-arm64:0.12.6
 ```
 
 ### Public Juno Nodes
