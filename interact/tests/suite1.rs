@@ -1,50 +1,58 @@
 use cosmrs::{
     bip32::{self},
     crypto::secp256k1,
+    crypto::PublicKey,
 };
 use pdao_cosmos_interact::utils::private_to_pub_and_account;
 use pdao_cosmos_interact::*;
 use serde_json::json;
+use std::{thread, time};
 
+// check whether the full node is responding by a simple request
 #[ignore]
 #[tokio::test]
 async fn check_connection() {
-    //let _config = Config::read_from_env();
-    // check whether the full node is responding by a simple request
-    let rest_api_endpoint = "api.malaga-420.cosmwasm.com";
+    let full_path = format!(
+        "{}{}",
+        std::env::current_dir().unwrap().to_str().unwrap(),
+        "/test_config_example.json"
+    );
+    Config::set_env("config", full_path.as_str());
+    let _config = Config::read_from_env();
 
+    let query_info = "net_info?";
     let client = reqwest::Client::new();
     let response = request(
         &client,
-        &format!(
-            "https://{}/cosmos/distribution/v1beta1/community_pool",
-            rest_api_endpoint
-        ),
+        &format!("https://{}/{}", _config.rpc, query_info),
         None,
     )
     .await
     .unwrap();
 
-    let denom = response["pool"].as_array().unwrap()[1]["denom"]
-        .as_str()
-        .unwrap();
+    let listening = response["result"]["listening"].as_bool().unwrap();
 
-    assert_eq!(denom, "umlg");
+    assert_eq!(listening, true);
 }
 
+// check the latest block number recognized by the full node **twice** with some delay,
+// so that we can assure that the full node is properly updating its blocks
 #[ignore]
 #[tokio::test]
 async fn check_block_number() {
-    //let _config = Config::read_from_env();
-    // check the latest block number recognized by the full node **twice** with some delay,
-    // so that we can assure that the full node is properly updating its blocks
-    let rest_api_endpoint = "rpc.malaga-420.cosmwasm.com";
-    let query_info = "abci_info?";
+    let full_path = format!(
+        "{}{}",
+        std::env::current_dir().unwrap().to_str().unwrap(),
+        "/test_config_example.json"
+    );
+    Config::set_env("config", full_path.as_str());
+    let _config = Config::read_from_env();
 
+    let query_info = "abci_info?";
     let client = reqwest::Client::new();
     let response_first = request(
         &client,
-        &format!("https://{}/{}", rest_api_endpoint, query_info),
+        &format!("https://{}/{}", _config.rpc, query_info),
         None,
     )
     .await
@@ -57,10 +65,13 @@ async fn check_block_number() {
     let mut response_second;
     let mut second_block_height = first_block_height;
 
+    let five_secs = time::Duration::from_secs(5);
     while first_block_height == second_block_height {
+        thread::sleep(five_secs);
+
         response_second = request(
             &client,
-            &format!("https://{}/{}", rest_api_endpoint, query_info),
+            &format!("https://{}/{}", _config.rpc, query_info),
             None,
         )
         .await
@@ -74,35 +85,34 @@ async fn check_block_number() {
     assert!(first_block_height < second_block_height);
 }
 
-/// by requesting the full node, checks whether the account given by the config has enough native token to pay gas fee
+//by requesting the full node, checks whether the account given by the config has enough native token to pay gas fee
 #[ignore]
 #[tokio::test]
 async fn check_account() {
-    //let _config = Config::read_from_env();
+    let full_path = format!(
+        "{}{}",
+        std::env::current_dir().unwrap().to_str().unwrap(),
+        "/test_config_example.json"
+    );
+    Config::set_env("config", full_path.as_str());
+    let _config = Config::read_from_env();
 
-    let rest_api_endpoint = "api.malaga-420.cosmwasm.com";
-    let target_address = "wasm1rpfxxy379eq2lq8wjz0lcke9ql49p5uzx2246vx6pml7yvd954tstdaaae"; //TODO: needs to be changed
     let min_balance = 10000u64;
-
     let client = reqwest::Client::new();
     let response = request(
         &client,
         &format!(
-            "https://{}/cosmos/bank/v1beta1/balances/{}",
-            rest_api_endpoint, target_address
+            "{}/cosmos/bank/v1beta1/balances/{}",
+            _config.full_node_url, _config.account_address
         ),
         None,
     )
     .await
     .unwrap();
 
-    println!("{}", response);
-
     let current_balance = response["balances"].as_array().unwrap()[0]["amount"]
         .as_str()
         .unwrap();
-
-    println!("{}", current_balance);
 
     assert!(min_balance <= current_balance.parse::<u64>().unwrap());
 }
@@ -110,6 +120,14 @@ async fn check_account() {
 #[ignore]
 #[tokio::test]
 async fn test_query_get_count() {
+    let full_path = format!(
+        "{}{}",
+        std::env::current_dir().unwrap().to_str().unwrap(),
+        "/test_config_example.json"
+    );
+    Config::set_env("config", full_path.as_str());
+    let _config = Config::read_from_env();
+
     let msg = json!({
         "get_count": {}
     });
@@ -117,8 +135,8 @@ async fn test_query_get_count() {
     let encode_msg = base64::encode(&serde_json::to_vec(&msg).unwrap());
 
     let response = query::send_query(
-        "api.malaga-420.cosmwasm.com",
-        "wasm1rpfxxy379eq2lq8wjz0lcke9ql49p5uzx2246vx6pml7yvd954tstdaaae",
+        &_config.full_node_url,
+        &_config.account_address, //needs contract address
         encode_msg.as_str(),
     )
     .await;
