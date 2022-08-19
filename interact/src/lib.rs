@@ -21,13 +21,20 @@ pub struct Config {
     pub denom: String,
     pub mnemonic: String,
     pub password: String,
+    pub account_prefix: String,
+    pub account_address: String,
 }
 
 impl Config {
+    pub fn set_env(key: &str, value: &str) {
+        std::env::set_var(key, value);
+        assert_eq!(std::env::var(key), Ok(value.to_string()));
+    }
+
     pub fn read_from_env() -> Self {
         serde_json::from_str(
             &std::fs::read_to_string(
-                std::env::var("CONFIG_PATH")
+                std::env::var("config")
                     .expect("Environment variable for the config file path is missing"),
             )
             .expect("Failed to locate the config file"),

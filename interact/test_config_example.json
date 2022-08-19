@@ -1,6 +1,13 @@
 {
-    "full_node_url": "https://example.com",
+    "full_node_url": "https://lcd.uni.juno.deuslabs.fi/",
     "account_public": "example.testnet.public",
     "account_private": "example.testnet.private",
-    "wasm_binary_path": "example/path"
+    "wasm_binary_path": "example/path",
+    "rpc": "rpc.uni.juno.deuslabs.fi",
+    "chain_id": "uni-3",
+    "denom": "ujunox",
+    "mnemonic": "embody accuse hour soul cream trick cabbage door where matrix shed hand level figure excuse input shove screen amateur forward floor crack wash mango",
+    "password": "testuni3",
+    "account_prefix": "wasm",
+    "account_address": "juno1x950tdufany5aluq7y93e2skprwj7t6quwv8z9"
 }
