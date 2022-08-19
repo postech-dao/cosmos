@@ -7,7 +7,6 @@ include = ["src/**/*", "Cargo.toml"]
 license = "MIT"
 readme = "../README.md"
 
-
 [lib]
 crate-type = ["cdylib", "rlib"]
 
@@ -27,7 +26,6 @@ overflow-checks = true
 backtraces = ["cosmwasm-std/backtraces"]
 # use library feature to disable all instantiate/execute/query exports
 library = []
-
 
 [dependencies]
 cosmwasm-std = "1.0.0"
