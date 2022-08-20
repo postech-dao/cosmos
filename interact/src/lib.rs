@@ -22,7 +22,6 @@ pub struct Config {
     pub mnemonic: String,
     pub password: String,
     pub account_prefix: String,
-    pub account_address: String,
 }
 
 impl Config {
@@ -38,6 +37,36 @@ impl Config {
                     .expect("Environment variable for the config file path is missing"),
             )
             .expect("Failed to locate the config file"),
+        )
+        .expect("Failed to parse the config")
+    }
+
+    pub fn read_from_path() -> Self {
+        let full_path = format!(
+            "{}{}",
+            std::env::current_dir().unwrap().to_str().unwrap(),
+            "/test_config_example.json"
+        );
+
+        println!("{}", full_path);
+
+        serde_json::from_str(
+            &std::fs::read_to_string(full_path).expect("Failed to locate the config file"),
+        )
+        .expect("Failed to parse the config")
+    }
+
+    pub fn read_from_path_main() -> Self {
+        let full_path = format!(
+            "{}{}",
+            std::env::current_dir().unwrap().to_str().unwrap(),
+            "/interact/test_config_example.json"
+        );
+
+        println!("{}", full_path);
+
+        serde_json::from_str(
+            &std::fs::read_to_string(full_path).expect("Failed to locate the config file"),
         )
         .expect("Failed to parse the config")
     }

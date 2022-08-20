@@ -9,20 +9,20 @@ source <(curl -sSL https://raw.githubusercontent.com/CosmWasm/testnets/master/un
 #junod keys add test_uni3
 #keyring passphrase: testuni3
 
-# Use the below malaga testnet account
+# Use the below uni-3 testnet account
 :'
 name: test_uni3
 type: local
-address: juno1x950tdufany5aluq7y93e2skprwj7t6quwv8z9
-pubkey: '{"@type":"/cosmos.crypto.secp256k1.PubKey","key":"Al0MH+ebce5CUODiyNYEQkvf0e3LuW4jbqD2s/kKBKFF"}'
-mnemonic: "embody accuse hour soul cream trick cabbage door where matrix shed hand level figure excuse input shove screen amateur forward floor crack wash mango"
+address: juno18sfvnktcdvufrngsy7nhdjc6z84lz32xqjky4j
+pubkey: '{"@type":"/cosmos.crypto.secp256k1.PubKey","key":"AlrEj+tQ8rQXG0IXhwWGN6QaA01HwmmvjlKI1M89Y3LD"}'
+mnemonic: "youth amused accident boring boss sniff solid inmate small body slow surround survey have rough pill risk ankle extra useful slush junk rally slogan"
 '
 
 # Send request for tokens. You should see ok message after executing this command
-curl -X POST --header "Content-Type: application/json" --data '{"denom":"ujunox","address":"juno1x950tdufany5aluq7y93e2skprwj7t6quwv8z9"}' https://rpc.uni.juno.deuslabs.fi/credit
+curl -X POST --header "Content-Type: application/json" --data '{"denom":"ujunox","address":"juno18sfvnktcdvufrngsy7nhdjc6z84lz32xqjky4j"}' https://faucet.uni.juno.deuslabs.fi/credit
 
 # Check that your faucet request has been successful
-junod query bank balances juno1x950tdufany5aluq7y93e2skprwj7t6quwv8z9 --node https://rpc.uni.juno.deuslabs.fi:443
+junod query bank balances juno18sfvnktcdvufrngsy7nhdjc6z84lz32xqjky4j --node https://rpc.uni.juno.deuslabs.fi:443
 
 # You can see something like this
 :'

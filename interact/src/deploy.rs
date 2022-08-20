@@ -1,14 +1,13 @@
+use super::query::{get_account_number, get_sequence_number};
+use super::utils::private_to_pub_and_account;
 use cosmrs::{
     crypto, dev, rpc,
     tx::{self, Fee, Msg, SignDoc, SignerInfo},
     Coin,
 };
-
+use serde_json::Value;
 use std::fs::File;
 use std::io::Read;
-
-use super::query::{get_account_number, get_sequence_number};
-use super::utils::private_to_pub_and_account;
 
 #[allow(clippy::too_many_arguments)]
 pub async fn store_contract(
@@ -22,7 +21,7 @@ pub async fn store_contract(
     gas_amount: u32,
     gas_limit: u64,
     account_id: &str,
-) {
+) -> u64 {
     // Submit a transaction that store the simple-counter contract
 
     let (sender_public_key, sender_account_id) =
@@ -88,6 +87,17 @@ pub async fn store_contract(
     let tx = dev::poll_for_tx(&rpc_client, tx_commit_response.hash).await;
     assert_eq!(&tx_body, &tx.body);
     assert_eq!(&auth_info, &tx.auth_info);
+
+    let result: Value = serde_json::from_str(tx_commit_response.deliver_tx.log.as_ref()).unwrap();
+    let code_id = result.as_array().unwrap()[0]["events"].as_array().unwrap()[1]["attributes"]
+        .as_array()
+        .unwrap()[0]["value"]
+        .as_str()
+        .unwrap()
+        .parse::<u64>()
+        .unwrap();
+
+    code_id
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -104,7 +114,7 @@ pub async fn instantiate_contract(
     gas_limit: u64,
     account_id: &str,
     funds: u32,
-) {
+) -> String {
     // Submit a transaction that instantiates the simple-counter contract
 
     let (sender_public_key, sender_account_id) =
@@ -169,4 +179,14 @@ pub async fn instantiate_contract(
     let tx = dev::poll_for_tx(&rpc_client, tx_commit_response.hash).await;
     assert_eq!(&tx_body, &tx.body);
     assert_eq!(&auth_info, &tx.auth_info);
+
+    let result: Value = serde_json::from_str(tx_commit_response.deliver_tx.log.as_ref()).unwrap();
+    let contract_address = result.as_array().unwrap()[0]["events"].as_array().unwrap()[0]
+        ["attributes"]
+        .as_array()
+        .unwrap()[0]["value"]
+        .as_str()
+        .unwrap();
+
+    contract_address.to_string()
 }
