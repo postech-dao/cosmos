@@ -7,7 +7,7 @@ use cosmrs::{
 use std::fs::File;
 use std::io::Read;
 
-use super::query::get_sequence_number;
+use super::query::{get_account_number, get_sequence_number};
 use super::utils::private_to_pub_and_account;
 
 #[allow(clippy::too_many_arguments)]
@@ -17,7 +17,6 @@ pub async fn store_contract(
     rpc_address: &str,
     api_address: &str,
     chain_id: &str,
-    account_num: u64,
     denom: &str,
     tx_memo: Option<&str>,
     gas_amount: u32,
@@ -62,8 +61,8 @@ pub async fn store_contract(
     let tx_body = tx::Body::new(vec![msg], tx_memo.unwrap_or("test memo"), timeout_height);
     let auth_info =
         SignerInfo::single_direct(Some(sender_public_key), sequence_number).auth_info(fee);
-    // TODO: automatically get account number
-    let sign_doc = SignDoc::new(&tx_body, &auth_info, &chain_id, account_num).unwrap();
+    let account_number = get_account_number(api_address, sender_account_id.as_ref()).await;
+    let sign_doc = SignDoc::new(&tx_body, &auth_info, &chain_id, account_number).unwrap();
     let tx_raw = sign_doc.sign(sender_private_key).unwrap();
 
     let rpc_address = rpc_address.to_owned();
@@ -98,7 +97,6 @@ pub async fn instantiate_contract(
     rpc_address: &str,
     api_address: &str,
     chain_id: &str,
-    account_num: u64,
     denom: &str,
     tx_memo: Option<&str>,
     contract_msg: Vec<u8>,
@@ -144,8 +142,8 @@ pub async fn instantiate_contract(
     let tx_body = tx::Body::new(vec![msg], tx_memo.unwrap_or("test memo"), timeout_height);
     let auth_info =
         SignerInfo::single_direct(Some(sender_public_key), sequence_number).auth_info(fee);
-    // TODO: automatically get account number
-    let sign_doc = SignDoc::new(&tx_body, &auth_info, &chain_id, account_num).unwrap();
+    let account_number = get_account_number(api_address, sender_account_id.as_ref()).await;
+    let sign_doc = SignDoc::new(&tx_body, &auth_info, &chain_id, account_number).unwrap();
     let tx_raw = sign_doc.sign(sender_private_key).unwrap();
 
     let rpc_address = rpc_address.to_owned();

@@ -4,7 +4,7 @@ use cosmrs::{
     Coin,
 };
 
-use super::query::get_sequence_number;
+use super::query::{get_account_number, get_sequence_number};
 use super::utils::private_to_pub_and_account;
 
 #[allow(clippy::too_many_arguments)]
@@ -21,7 +21,6 @@ pub async fn send_execute(
     gas_amount: u32,
     gas_limit: u64,
     tx_memo: Option<&str>,
-    account_num: u64,
 ) {
     let (sender_public_key, sender_account_id) =
         private_to_pub_and_account(sender_private_key, account_id);
@@ -53,8 +52,8 @@ pub async fn send_execute(
     let tx_body = tx::Body::new(vec![msg], tx_memo.unwrap_or("test memo"), timeout_height);
     let auth_info =
         SignerInfo::single_direct(Some(sender_public_key), sequence_number).auth_info(fee);
-    // TODO: automatically get account number
-    let sign_doc = SignDoc::new(&tx_body, &auth_info, &chain_id, account_num).unwrap();
+    let account_number = get_account_number(api_address, sender_account_id.as_ref()).await;
+    let sign_doc = SignDoc::new(&tx_body, &auth_info, &chain_id, account_number).unwrap();
     let tx_raw = sign_doc.sign(sender_private_key).unwrap();
 
     let rpc_address = rpc_address.to_owned();
