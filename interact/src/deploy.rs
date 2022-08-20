@@ -7,6 +7,7 @@ use cosmrs::{
 use std::fs::File;
 use std::io::Read;
 
+use super::query::get_sequence_number;
 use super::utils::private_to_pub_and_account;
 
 #[allow(clippy::too_many_arguments)]
@@ -14,6 +15,7 @@ pub async fn store_contract(
     sender_private_key: &crypto::secp256k1::SigningKey,
     path: &str,
     rpc_address: &str,
+    api_address: &str,
     chain_id: &str,
     account_num: u64,
     denom: &str,
@@ -53,8 +55,7 @@ pub async fn store_contract(
     };
 
     let chain_id = chain_id.parse().unwrap();
-    // TODO: automatically set account sequence
-    let sequence_number = 1;
+    let sequence_number = get_sequence_number(api_address, sender_account_id.as_ref()).await;
     let fee = Fee::from_amount_and_gas(amount.clone(), gas_limit);
     let timeout_height = 0u16;
 
@@ -95,6 +96,7 @@ pub async fn instantiate_contract(
     sender_private_key: &crypto::secp256k1::SigningKey,
     code_id: u64,
     rpc_address: &str,
+    api_address: &str,
     chain_id: &str,
     account_num: u64,
     denom: &str,
@@ -135,8 +137,7 @@ pub async fn instantiate_contract(
     };
 
     let chain_id = chain_id.parse().unwrap();
-    // TODO: automatically set account sequence
-    let sequence_number = 2;
+    let sequence_number = get_sequence_number(api_address, sender_account_id.as_ref()).await;
     let fee = Fee::from_amount_and_gas(amount.clone(), gas_limit);
     let timeout_height = 0u16;
 

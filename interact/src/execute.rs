@@ -4,6 +4,7 @@ use cosmrs::{
     Coin,
 };
 
+use super::query::get_sequence_number;
 use super::utils::private_to_pub_and_account;
 
 #[allow(clippy::too_many_arguments)]
@@ -11,6 +12,7 @@ pub async fn send_execute(
     sender_private_key: &crypto::secp256k1::SigningKey,
     chain_id: &str,
     rpc_address: &str,
+    api_address: &str,
     denom: &str,
     account_id: &str,
     funds: u32,
@@ -44,8 +46,7 @@ pub async fn send_execute(
     };
 
     let chain_id = chain_id.parse().unwrap();
-    // TODO: automatically set account sequence
-    let sequence_number = 6;
+    let sequence_number = get_sequence_number(api_address, sender_account_id.as_ref()).await;
     let fee = Fee::from_amount_and_gas(amount.clone(), gas_limit);
     let timeout_height = 0u16;
 
