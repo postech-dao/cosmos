@@ -179,7 +179,6 @@ async fn test_execute_increment_fail() {
         2000000,
         2000000,
         None,
-        1411,
     )
     .await
     // deliver_tx failed: TxResult { code: Err(5), data: None, log: Log("failed to execute message; message index: 0: Unauthorized: execute wasm contract failed"), info: Info(""), gas_wanted: Gas(2000000), gas_used: Gas(136249), events: [Event { type_str: "coin_spent", attributes: [Tag { key: Key("spender"), value: Value("wasm1quzyfdgzw42aelcdkrw2v8vnfdxsk9jkl7a4qf") }, Tag { key: Key("amount"), value: Value("2000000umlg") }] }, Event { type_str: "coin_received", attributes: [Tag { key: Key("receiver"), value: Value("wasm17xpfvakm2amg962yls6f84z3kell8c5l69j4zk") }, Tag { key: Key("amount"), value: Value("2000000umlg") }] }, Event { type_str: "transfer", attributes: [Tag { key: Key("recipient"), value: Value("wasm17xpfvakm2amg962yls6f84z3kell8c5l69j4zk") }, Tag { key: Key("sender"), value: Value("wasm1quzyfdgzw42aelcdkrw2v8vnfdxsk9jkl7a4qf") }, Tag { key: Key("amount"), value: Value("2000000umlg") }] }, Event { type_str: "message", attributes: [Tag { key: Key("sender"), value: Value("wasm1quzyfdgzw42aelcdkrw2v8vnfdxsk9jkl7a4qf") }] }, Event { type_str: "tx", attributes: [Tag { key: Key("fee"), value: Value("2000000umlg") }] }, Event { type_str: "tx", attributes: [Tag { key: Key("acc_seq"), value: Value("wasm1quzyfdgzw42aelcdkrw2v8vnfdxsk9jkl7a4qf/5") }] }, Event { type_str: "tx", attributes: [Tag { key: Key("signature"), value: Value("dHGDLpzY8zHIO/E1K6MHTNWkbF5RMlYbYzTzlIqpjzgfUfk7EO7L0hC7mHoJO+9lQJhV01JJMnAWDQToe+RogA==") }] }], codespace: Codespace("wasm") }
@@ -211,7 +210,6 @@ async fn test_execute_increment() {
         2000000,
         2000000,
         None,
-        1411,
     )
     .await
     // [{"events":[{"type":"coin_received","attributes":[{"key":"receiver","value":"wasm1rpfxxy379eq2lq8wjz0lcke9ql49p5uzx2246vx6pml7yvd954tstdaaae"},{"key":"amount","value":"10000umlg"}]},{"type":"coin_spent","attributes":[{"key":"spender","value":"wasm1quzyfdgzw42aelcdkrw2v8vnfdxsk9jkl7a4qf"},{"key":"amount","value":"10000umlg"}]},{"type":"execute","attributes":[{"key":"_contract_address","value":"wasm1rpfxxy379eq2lq8wjz0lcke9ql49p5uzx2246vx6pml7yvd954tstdaaae"}]},{"type":"message","attributes":[{"key":"action","value":"/cosmwasm.wasm.v1.MsgExecuteContract"},{"key":"module","value":"wasm"},{"key":"sender","value":"wasm1quzyfdgzw42aelcdkrw2v8vnfdxsk9jkl7a4qf"}]},{"type":"transfer","attributes":[{"key":"recipient","value":"wasm1rpfxxy379eq2lq8wjz0lcke9ql49p5uzx2246vx6pml7yvd954tstdaaae"},{"key":"sender","value":"wasm1quzyfdgzw42aelcdkrw2v8vnfdxsk9jkl7a4qf"},{"key":"amount","value":"10000umlg"}]},{"type":"wasm","attributes":[{"key":"_contract_address","value":"wasm1rpfxxy379eq2lq8wjz0lcke9ql49p5uzx2246vx6pml7yvd954tstdaaae"},{"key":"method","value":"try_increment"}]}]}]
@@ -244,7 +242,6 @@ async fn test_execute_reset() {
         2000000,
         2000000,
         None,
-        1411,
     )
     .await
     // [{"events":[{"type":"coin_received","attributes":[{"key":"receiver","value":"wasm1rpfxxy379eq2lq8wjz0lcke9ql49p5uzx2246vx6pml7yvd954tstdaaae"},{"key":"amount","value":"10000umlg"}]},{"type":"coin_spent","attributes":[{"key":"spender","value":"wasm1quzyfdgzw42aelcdkrw2v8vnfdxsk9jkl7a4qf"},{"key":"amount","value":"10000umlg"}]},{"type":"execute","attributes":[{"key":"_contract_address","value":"wasm1rpfxxy379eq2lq8wjz0lcke9ql49p5uzx2246vx6pml7yvd954tstdaaae"}]},{"type":"message","attributes":[{"key":"action","value":"/cosmwasm.wasm.v1.MsgExecuteContract"},{"key":"module","value":"wasm"},{"key":"sender","value":"wasm1quzyfdgzw42aelcdkrw2v8vnfdxsk9jkl7a4qf"}]},{"type":"transfer","attributes":[{"key":"recipient","value":"wasm1rpfxxy379eq2lq8wjz0lcke9ql49p5uzx2246vx6pml7yvd954tstdaaae"},{"key":"sender","value":"wasm1quzyfdgzw42aelcdkrw2v8vnfdxsk9jkl7a4qf"},{"key":"amount","value":"10000umlg"}]},{"type":"wasm","attributes":[{"key":"_contract_address","value":"wasm1rpfxxy379eq2lq8wjz0lcke9ql49p5uzx2246vx6pml7yvd954tstdaaae"},{"key":"method","value":"reset"}]}]}]
@@ -267,7 +264,6 @@ async fn test_store_contract() {
         "https://rpc.malaga-420.cosmwasm.com:443",
         "https://api.malaga-420.cosmwasm.com:443",
         "malaga-420",
-        1411,
         "umlg",
         None,
         2000000,
@@ -300,7 +296,6 @@ async fn test_instantiate_contract() {
         "https://rpc.malaga-420.cosmwasm.com:443",
         "https://api.malaga-420.cosmwasm.com:443",
         "malaga-420",
-        1411,
         "umlg",
         None,
         serde_json::to_vec(&msg).unwrap(),
