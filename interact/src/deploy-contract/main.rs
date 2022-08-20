@@ -1,55 +1,55 @@
-use cosmrs::{bip32, crypto::secp256k1};
 use pdao_cosmos_interact::deploy::{instantiate_contract, store_contract};
-use pdao_cosmos_interact::utils::private_to_pub_and_account;
+use pdao_cosmos_interact::query;
+use pdao_cosmos_interact::utils::{mnemonic_to_private_key, private_to_pub_and_account};
 use pdao_cosmos_interact::Config;
 use serde_json::json;
 
 #[tokio::main]
 async fn main() {
-    let _config = Config::read_from_env();
+    let _config = Config::read_from_path_main();
+    let sender_private_key = mnemonic_to_private_key(_config.mnemonic, &_config.password);
 
-    let mnemonic = "coyote electric million purchase tennis skin quiz inside helmet call glimpse pulse turkey hint maze iron festival run bomb regular legend prepare service angry".to_string();
-    let seed = bip32::Mnemonic::new(mnemonic, bip32::Language::English)
-        .unwrap()
-        .to_seed("");
-    let key: secp256k1::SigningKey = bip32::XPrv::new(seed).unwrap().into();
-    store_contract(
-        &key,
-        "../simple-counter/artifacts/simple_counter-aarch64.wasm",
-        "https://rpc.malaga-420.cosmwasm.com:443",
-        "https://api.malaga-420.cosmwasm.com:443",
-        "malaga-420",
-        "umlg",
+    let code_id = store_contract(
+        &sender_private_key,
+        "artifacts/simple_counter.wasm",
+        &_config.rpc,
+        &_config.full_node_url,
+        &_config.chain_id,
+        &_config.denom,
         None,
-        2000000,
-        2000000,
-        "wasm",
+        20000000,
+        20000000,
+        &_config.account_prefix,
     )
     .await;
 
-    let (_, sender_account_id) = private_to_pub_and_account(&key, "wasm");
-
+    let (_, sender_account_address) =
+        private_to_pub_and_account(&sender_private_key, &_config.account_prefix);
     let msg = json!({
         "count": 100u64,
-        "auth": [sender_account_id.to_string()]
+        "auth": [sender_account_address.to_string()]
     });
 
-    // FIXME: bring code_id from store_contract
-    let code_id = 0;
-    instantiate_contract(
-        &key,
+    let contract_address = instantiate_contract(
+        &sender_private_key,
         code_id,
-        "https://rpc.malaga-420.cosmwasm.com:443",
-        "https://api.malaga-420.cosmwasm.com:443",
-        "malaga-420",
-        "umlg",
+        &_config.rpc,
+        &_config.full_node_url,
+        &_config.chain_id,
+        &_config.denom,
         None,
         serde_json::to_vec(&msg).unwrap(),
-        2000000,
-        2000000,
-        "wasm",
+        20000000,
+        20000000,
+        &_config.account_prefix,
         10000,
     )
     .await;
-    // FIXME: output contract_address
+
+    println!("{}", code_id);
+    println!("{}", contract_address);
+
+    let code_id_from_query =
+        query::get_code_id(&_config.full_node_url, contract_address.as_str()).await;
+    assert_eq!(code_id, code_id_from_query);
 }

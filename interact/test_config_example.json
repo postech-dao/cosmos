@@ -1,13 +1,12 @@
 {
-    "full_node_url": "https://lcd.uni.juno.deuslabs.fi/",
-    "account_public": "example.testnet.public",
+    "full_node_url": "https://lcd.uni.juno.deuslabs.fi",
+    "account_public": "A+Su6DQKrg16phy/7s6lsJUbfD/RuAKsP2WZUUL6KPoI",
     "account_private": "example.testnet.private",
     "wasm_binary_path": "example/path",
-    "rpc": "rpc.uni.juno.deuslabs.fi",
+    "rpc": "https://rpc.uni.juno.deuslabs.fi",
     "chain_id": "uni-3",
     "denom": "ujunox",
-    "mnemonic": "embody accuse hour soul cream trick cabbage door where matrix shed hand level figure excuse input shove screen amateur forward floor crack wash mango",
+    "mnemonic": "youth amused accident boring boss sniff solid inmate small body slow surround survey have rough pill risk ankle extra useful slush junk rally slogan",
     "password": "testuni3",
-    "account_prefix": "wasm",
-    "account_address": "juno1x950tdufany5aluq7y93e2skprwj7t6quwv8z9"
+    "account_prefix": "juno"
 }

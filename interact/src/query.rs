@@ -20,6 +20,27 @@ pub async fn send_query(
     .unwrap()
 }
 
+pub async fn get_code_id(rest_api_endpoint: &str, contract_address: &str) -> u64 {
+    let client = reqwest::Client::new();
+
+    let response = request(
+        &client,
+        &format!(
+            "{}/cosmwasm/wasm/v1/contract/{}",
+            rest_api_endpoint, contract_address
+        ),
+        None,
+    )
+    .await
+    .unwrap();
+
+    response["contract_info"]["code_id"]
+        .as_str()
+        .unwrap()
+        .parse::<u64>()
+        .unwrap()
+}
+
 pub async fn get_sequence_number(rest_api_endpoint: &str, address: &str) -> u64 {
     let client = reqwest::Client::new();
 
