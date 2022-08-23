@@ -1,6 +1,6 @@
 [workspace]
 members = [
-    "simple-counter",
+    "contracts/simple-counter",
     "interact",
     "colony-chain"
 ]

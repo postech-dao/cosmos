@@ -53,7 +53,7 @@ jobs:
         run: cargo test
 
       - name: Run cargo test in simple counter
-        working-directory: simple-counter
+        working-directory: contracts/simple-counter
         run: cargo unit-test
 
   build:
@@ -76,9 +76,9 @@ jobs:
         run: cargo build
 
       - name: build simple-counter
-        working-directory: simple-counter
+        working-directory: contracts/simple-counter
         run: cargo wasm
 
       - name: build schema for simple-counter
-        working-directory: simple-counter
+        working-directory: contracts/simple-counter
         run: cargo schema
