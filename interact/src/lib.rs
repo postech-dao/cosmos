@@ -25,15 +25,10 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn set_env(key: &str, value: &str) {
-        std::env::set_var(key, value);
-        assert_eq!(std::env::var(key), Ok(value.to_string()));
-    }
-
     pub fn read_from_env() -> Self {
         serde_json::from_str(
             &std::fs::read_to_string(
-                std::env::var("config")
+                std::env::var("CONFIG_PATH")
                     .expect("Environment variable for the config file path is missing"),
             )
             .expect("Failed to locate the config file"),
@@ -41,30 +36,7 @@ impl Config {
         .expect("Failed to parse the config")
     }
 
-    pub fn read_from_path() -> Self {
-        let full_path = format!(
-            "{}{}",
-            std::env::current_dir().unwrap().to_str().unwrap(),
-            "/test_config_example.json"
-        );
-
-        println!("{}", full_path);
-
-        serde_json::from_str(
-            &std::fs::read_to_string(full_path).expect("Failed to locate the config file"),
-        )
-        .expect("Failed to parse the config")
-    }
-
-    pub fn read_from_path_main() -> Self {
-        let full_path = format!(
-            "{}{}",
-            std::env::current_dir().unwrap().to_str().unwrap(),
-            "/interact/test_config_example.json"
-        );
-
-        println!("{}", full_path);
-
+    pub fn read_from_path(full_path: String) -> Self {
         serde_json::from_str(
             &std::fs::read_to_string(full_path).expect("Failed to locate the config file"),
         )
