@@ -7,7 +7,12 @@ use std::{thread, time};
 #[ignore]
 #[tokio::test]
 async fn check_connection() {
-    let _config = Config::read_from_path();
+    let full_path = format!(
+        "{}{}",
+        std::env::current_dir().unwrap().to_str().unwrap(),
+        "/test_config_example.json"
+    );
+    let _config = Config::read_from_path(full_path);
 
     let query_info = "net_info?";
     let client = reqwest::Client::new();
@@ -25,7 +30,12 @@ async fn check_connection() {
 #[ignore]
 #[tokio::test]
 async fn check_block_number() {
-    let _config = Config::read_from_path();
+    let full_path = format!(
+        "{}{}",
+        std::env::current_dir().unwrap().to_str().unwrap(),
+        "/test_config_example.json"
+    );
+    let _config = Config::read_from_path(full_path);
 
     let query_info = "abci_info?";
     let client = reqwest::Client::new();
@@ -60,7 +70,12 @@ async fn check_block_number() {
 #[ignore]
 #[tokio::test]
 async fn check_account_gas_fee() {
-    let _config = Config::read_from_path();
+    let full_path = format!(
+        "{}{}",
+        std::env::current_dir().unwrap().to_str().unwrap(),
+        "/test_config_example.json"
+    );
+    let _config = Config::read_from_path(full_path);
 
     let min_balance = 20000000u64;
 
@@ -90,7 +105,12 @@ async fn check_account_gas_fee() {
 #[ignore]
 #[tokio::test]
 async fn test_query_get_count() {
-    let _config = Config::read_from_path();
+    let full_path = format!(
+        "{}{}",
+        std::env::current_dir().unwrap().to_str().unwrap(),
+        "/test_config_example.json"
+    );
+    let _config = Config::read_from_path(full_path);
 
     let msg = json!({
         "get_count": {}
@@ -113,7 +133,12 @@ async fn test_query_get_count() {
 #[ignore]
 #[tokio::test]
 async fn test_query_get_auth() {
-    let _config = Config::read_from_path();
+    let full_path = format!(
+        "{}{}",
+        std::env::current_dir().unwrap().to_str().unwrap(),
+        "/test_config_example.json"
+    );
+    let _config = Config::read_from_path(full_path);
 
     let msg = json!({
         "get_auth": {}
@@ -138,7 +163,12 @@ async fn test_query_get_auth() {
 #[ignore]
 #[tokio::test]
 async fn test_execute_increment_fail() {
-    let _config = Config::read_from_path();
+    let full_path = format!(
+        "{}{}",
+        std::env::current_dir().unwrap().to_str().unwrap(),
+        "/test_config_example.json"
+    );
+    let _config = Config::read_from_path(full_path);
 
     let sender_private_key = mnemonic_to_private_key(_config.mnemonic, &_config.password);
 
@@ -168,7 +198,12 @@ async fn test_execute_increment_fail() {
 #[ignore]
 #[tokio::test]
 async fn test_execute_increment() {
-    let _config = Config::read_from_path();
+    let full_path = format!(
+        "{}{}",
+        std::env::current_dir().unwrap().to_str().unwrap(),
+        "/test_config_example.json"
+    );
+    let _config = Config::read_from_path(full_path);
 
     let sender_private_key = mnemonic_to_private_key(_config.mnemonic, &_config.password);
 
@@ -197,7 +232,12 @@ async fn test_execute_increment() {
 #[ignore]
 #[tokio::test]
 async fn test_execute_reset() {
-    let _config = Config::read_from_path();
+    let full_path = format!(
+        "{}{}",
+        std::env::current_dir().unwrap().to_str().unwrap(),
+        "/test_config_example.json"
+    );
+    let _config = Config::read_from_path(full_path);
 
     let sender_private_key = mnemonic_to_private_key(_config.mnemonic, &_config.password);
 
@@ -229,7 +269,12 @@ async fn test_store_contract() {
     // Sender publickey {"@type":"/cosmos.crypto.secp256k1.PubKey","key":"A+Su6DQKrg16phy/7s6lsJUbfD/RuAKsP2WZUUL6KPoI"}
     // Sender account id juno175ersy4z8pmqqx5pmjgfn7qv4ksxslwq56e89a
     // Mnemonic "youth amused accident boring boss sniff solid inmate small body slow surround survey have rough pill risk ankle extra useful slush junk rally slogan"
-    let _config = Config::read_from_path();
+    let full_path = format!(
+        "{}{}",
+        std::env::current_dir().unwrap().to_str().unwrap(),
+        "/test_config_example.json"
+    );
+    let _config = Config::read_from_path(full_path);
 
     let sender_private_key = mnemonic_to_private_key(_config.mnemonic, &_config.password);
 
@@ -255,7 +300,12 @@ async fn test_store_contract() {
 #[ignore]
 #[tokio::test]
 async fn test_instantiate_contract() {
-    let _config = Config::read_from_path();
+    let full_path = format!(
+        "{}{}",
+        std::env::current_dir().unwrap().to_str().unwrap(),
+        "/test_config_example.json"
+    );
+    let _config = Config::read_from_path(full_path);
 
     let sender_private_key = mnemonic_to_private_key(_config.mnemonic, &_config.password);
     let (_, sender_account_id) =

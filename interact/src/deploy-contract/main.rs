@@ -6,7 +6,12 @@ use serde_json::json;
 
 #[tokio::main]
 async fn main() {
-    let _config = Config::read_from_path_main();
+    let full_path = format!(
+        "{}{}",
+        std::env::current_dir().unwrap().to_str().unwrap(),
+        "/interact/test_config_example.json"
+    );
+    let _config = Config::read_from_path(full_path);
     let sender_private_key = mnemonic_to_private_key(_config.mnemonic, &_config.password);
 
     let code_id = store_contract(
