@@ -9,9 +9,7 @@ pub use cw_controllers::ClaimsResponse;
 
 #[derive(Serialize, Deserialize, JsonSchema, Debug, Clone, PartialEq)]
 pub struct InstantiateMsg {
-    // Owner can update all configs including changing the owner. This will generally be a DAO.
     pub owner: Option<String>,
-    // Manager can update all configs except changing the owner. This will generally be an operations multisig for a DAO.
     pub manager: Option<String>,
     pub token_address: String,
     pub unstaking_duration: Option<Duration>,
@@ -30,12 +28,6 @@ pub enum ExecuteMsg {
         manager: Option<String>,
         duration: Option<Duration>,
     },
-    /*AddHook {
-        addr: String,
-    },
-    RemoveHook {
-        addr: String,
-    },*/
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
@@ -63,7 +55,6 @@ pub enum QueryMsg {
     Claims {
         address: String,
     },
-    //GetHooks {},
     ListStakers {
         start_after: Option<String>,
         limit: Option<u32>,
@@ -102,12 +93,6 @@ pub struct StakedValueResponse {
 pub struct TotalValueResponse {
     pub total: Uint128,
 }
-
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-#[serde(rename_all = "snake_case")]
-/*pub struct GetHooksResponse {
-    pub hooks: Vec<String>,
-}*/
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 #[serde(rename_all = "snake_case")]

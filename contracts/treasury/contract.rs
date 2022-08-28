@@ -8,7 +8,6 @@ use cosmwasm_std::{
 
 use cw20::Cw20ReceiveMsg;
 
-//use crate::hooks::{stake_hook_msgs, unstake_hook_msgs};
 use crate::msg::{
     ExecuteMsg, GetHooksResponse, InstantiateMsg, ListStakersResponse, MigrateMsg, QueryMsg,
     ReceiveMsg, StakedBalanceAtHeightResponse, StakedValueResponse, StakerBalanceResponse,
@@ -79,10 +78,6 @@ pub fn instantiate(
     };
     CONFIG.save(deps.storage, &config)?;
 
-    // Initialize state to zero. We do this instead of using
-    // `unwrap_or_default` where this is used as it protects us
-    // against a scenerio where state is cleared by a bad actor and
-    // `unwrap_or_default` carries on.
     STAKED_TOTAL.save(deps.storage, &Uint128::zero(), env.block.height)?;
     BALANCE.save(deps.storage, &Uint128::zero())?;
 
@@ -107,8 +102,6 @@ pub fn execute(
             manager,
             duration,
         } => execute_update_config(info, deps, owner, manager, duration),
-        //ExecuteMsg::AddHook { addr } => execute_add_hook(deps, env, info, addr),
-        //ExecuteMsg::RemoveHook { addr } => execute_remove_hook(deps, env, info, addr),
     }
 }
 
@@ -207,7 +200,6 @@ pub fn execute_stake(
         deps.storage,
         env.block.height,
         |total| -> StdResult<Uint128> {
-            // Initialized during instantiate - OK to unwrap.
             Ok(total.unwrap().checked_add(amount_to_stake)?)
         },
     )?;
@@ -215,9 +207,7 @@ pub fn execute_stake(
         deps.storage,
         &balance.checked_add(amount).map_err(StdError::overflow)?,
     )?;
-    //let hook_msgs = stake_hook_msgs(deps.storage, sender.clone(), amount_to_stake)?;
     Ok(Response::new()
-        //.add_submessages(hook_msgs)
         .add_attribute("action", "stake")
         .add_attribute("from", sender)
         .add_attribute("amount", amount))
@@ -247,7 +237,6 @@ pub fn execute_unstake(
         deps.storage,
         env.block.height,
         |total| -> StdResult<Uint128> {
-            // Initialized during instantiate - OK to unwrap.
             Ok(total.unwrap().checked_sub(amount)?)
         },
     )?;
@@ -257,7 +246,6 @@ pub fn execute_unstake(
             .checked_sub(amount_to_claim)
             .map_err(StdError::overflow)?,
     )?;
-    //let hook_msgs = unstake_hook_msgs(deps.storage, info.sender.clone(), amount)?;
     match config.unstaking_duration {
         None => {
             let cw_send_msg = cw20::Cw20ExecuteMsg::Transfer {
@@ -271,7 +259,6 @@ pub fn execute_unstake(
             };
             Ok(Response::new()
                 .add_message(wasm_msg)
-                //.add_submessages(hook_msgs)
                 .add_attribute("action", "unstake")
                 .add_attribute("from", info.sender)
                 .add_attribute("amount", amount)
@@ -291,7 +278,6 @@ pub fn execute_unstake(
             )?;
             Ok(Response::new()
                 .add_attribute("action", "unstake")
-                //.add_submessages(hook_msgs)
                 .add_attribute("from", info.sender)
                 .add_attribute("amount", amount)
                 .add_attribute("claim_duration", format!("{}", duration)))
@@ -340,40 +326,6 @@ pub fn execute_fund(
         .add_attribute("amount", amount))
 }
 
-/*pub fn execute_add_hook(
-    deps: DepsMut,
-    _env: Env,
-    info: MessageInfo,
-    addr: String,
-) -> Result<Response, ContractError> {
-    let addr = deps.api.addr_validate(&addr)?;
-    let config: Config = CONFIG.load(deps.storage)?;
-    if config.owner != Some(info.sender.clone()) && config.manager != Some(info.sender) {
-        return Err(ContractError::Unauthorized {});
-    };
-    HOOKS.add_hook(deps.storage, addr.clone())?;
-    Ok(Response::new()
-        .add_attribute("action", "add_hook")
-        .add_attribute("hook", addr))
-}*/
-
-/*pub fn execute_remove_hook(
-    deps: DepsMut,
-    _env: Env,
-    info: MessageInfo,
-    addr: String,
-) -> Result<Response, ContractError> {
-    let addr = deps.api.addr_validate(&addr)?;
-    let config: Config = CONFIG.load(deps.storage)?;
-    if config.owner != Some(info.sender.clone()) && config.manager != Some(info.sender) {
-        return Err(ContractError::Unauthorized {});
-    };
-    HOOKS.remove_hook(deps.storage, addr.clone())?;
-    Ok(Response::new()
-        .add_attribute("action", "remove_hook")
-        .add_attribute("hook", addr))
-}*/
-
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
@@ -387,7 +339,6 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         QueryMsg::StakedValue { address } => to_binary(&query_staked_value(deps, env, address)?),
         QueryMsg::TotalValue {} => to_binary(&query_total_value(deps, env)?),
         QueryMsg::Claims { address } => to_binary(&query_claims(deps, address)?),
-        //QueryMsg::GetHooks {} => to_binary(&query_hooks(deps)?),
         QueryMsg::ListStakers { start_after, limit } => {
             query_list_stakers(deps, start_after, limit)
         }
@@ -459,12 +410,6 @@ pub fn query_claims(deps: Deps, address: String) -> StdResult<ClaimsResponse> {
     CLAIMS.query_claims(deps, &deps.api.addr_validate(&address)?)
 }
 
-/*pub fn query_hooks(deps: Deps) -> StdResult<GetHooksResponse> {
-    Ok(GetHooksResponse {
-        hooks: HOOKS.query_hooks(deps)?.hooks,
-    })
-}*/
-
 pub fn query_list_stakers(
     deps: Deps,
     start_after: Option<String>,
@@ -492,38 +437,3 @@ pub fn query_list_stakers(
 
     to_binary(&ListStakersResponse { stakers })
 }
-
-/*
-#[cfg_attr(not(feature = "library"), entry_point)]
-pub fn migrate(deps: DepsMut, _env: Env, msg: MigrateMsg) -> Result<Response, ContractError> {
-    use serde::{Deserialize, Serialize};
-
-    #[derive(Serialize, Deserialize, Clone)]
-    struct BetaConfig {
-        pub admin: Addr,
-        pub token_address: Addr,
-        pub unstaking_duration: Option<Duration>,
-    }
-
-    match msg {
-        MigrateMsg::FromBeta { manager } => {
-            let data = deps
-                .storage
-                .get(b"config")
-                .ok_or_else(|| StdError::not_found("config"))?;
-            let beta_config: BetaConfig = from_slice(&data)?;
-            let new_config = Config {
-                owner: Some(beta_config.admin),
-                manager: manager
-                    .map(|human| deps.api.addr_validate(&human))
-                    .transpose()?,
-                token_address: beta_config.token_address,
-                unstaking_duration: beta_config.unstaking_duration,
-            };
-            deps.storage.set(b"config", &to_vec(&new_config)?);
-            Ok(Response::default())
-        }
-        MigrateMsg::FromCompatible {} => Ok(Response::default()),
-    }
-}
-*/
