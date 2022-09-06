@@ -3,16 +3,19 @@ use pdao_cosmos_interact::query;
 use pdao_cosmos_interact::utils::{mnemonic_to_private_key, private_to_pub_and_account};
 use pdao_cosmos_interact::Config;
 use serde_json::json;
+use std::error::Error;
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<(), Box<dyn Error>> {
     let full_path = format!(
         "{}{}",
-        std::env::current_dir().unwrap().to_str().unwrap(),
+        std::env::current_dir()?
+            .to_str()
+            .ok_or("Converting directory to &str failed")?,
         "/interact/test_config_example.json"
     );
     let _config = Config::read_from_path(full_path);
-    let sender_private_key = mnemonic_to_private_key(_config.mnemonic, &_config.password);
+    let sender_private_key = mnemonic_to_private_key(_config.mnemonic, &_config.password)?.into();
 
     let code_id = store_contract(
         &sender_private_key,
@@ -21,15 +24,15 @@ async fn main() {
         &_config.full_node_url,
         &_config.chain_id,
         &_config.denom,
-        None,
+        Some("test memo"),
         20000000,
         20000000,
         &_config.account_prefix,
     )
-    .await;
+    .await?;
 
     let (_, sender_account_address) =
-        private_to_pub_and_account(&sender_private_key, &_config.account_prefix);
+        private_to_pub_and_account(&sender_private_key, &_config.account_prefix)?;
     let msg = json!({
         "count": 100u64,
         "auth": [sender_account_address.to_string()]
@@ -42,19 +45,21 @@ async fn main() {
         &_config.full_node_url,
         &_config.chain_id,
         &_config.denom,
-        None,
-        serde_json::to_vec(&msg).unwrap(),
+        Some("test memo"),
+        serde_json::to_vec(&msg)?,
         20000000,
         20000000,
         &_config.account_prefix,
         10000,
     )
-    .await;
+    .await?;
 
     println!("{}", code_id);
     println!("{}", contract_address);
 
     let code_id_from_query =
-        query::get_code_id(&_config.full_node_url, contract_address.as_str()).await;
+        query::get_code_id(&_config.full_node_url, contract_address.as_str()).await?;
     assert_eq!(code_id, code_id_from_query);
+
+    Ok(())
 }
