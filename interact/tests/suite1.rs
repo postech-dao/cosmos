@@ -3,6 +3,9 @@ use pdao_cosmos_interact::*;
 use serde_json::json;
 use std::{thread, time};
 
+//Current test contract address: juno1cc9juyhhv74uwflnaw3x3h4qy8xglplshlt9fc6h39vfyd8kfjdsggfpvf
+//Contract auth address: juno175ersy4z8pmqqx5pmjgfn7qv4ksxslwq56e89a
+
 // check whether the full node is responding by a simple request
 #[ignore]
 #[tokio::test]
@@ -79,9 +82,11 @@ async fn check_account_gas_fee() {
 
     let min_balance = 20000000u64;
 
-    let sender_private_key = mnemonic_to_private_key(_config.mnemonic, &_config.password);
+    let sender_private_key = mnemonic_to_private_key(_config.mnemonic, &_config.password)
+        .unwrap()
+        .into();
     let (_, sender_account_address) =
-        private_to_pub_and_account(&sender_private_key, &_config.account_prefix);
+        private_to_pub_and_account(&sender_private_key, &_config.account_prefix).unwrap();
 
     let client = reqwest::Client::new();
     let response = request(
@@ -123,7 +128,8 @@ async fn test_query_get_count() {
         "juno1cc9juyhhv74uwflnaw3x3h4qy8xglplshlt9fc6h39vfyd8kfjdsggfpvf",
         encode_msg.as_str(),
     )
-    .await;
+    .await
+    .unwrap();
 
     let count = response["data"]["count"].as_u64().unwrap();
 
@@ -151,7 +157,8 @@ async fn test_query_get_auth() {
         "juno1cc9juyhhv74uwflnaw3x3h4qy8xglplshlt9fc6h39vfyd8kfjdsggfpvf",
         encode_msg.as_str(),
     )
-    .await;
+    .await
+    .unwrap();
 
     let auth = response["data"]["auth"].as_array().unwrap()[0]
         .as_str()
@@ -170,14 +177,16 @@ async fn test_execute_increment_fail() {
     );
     let _config = Config::read_from_path(full_path);
 
-    let sender_private_key = mnemonic_to_private_key(_config.mnemonic, &_config.password);
+    let sender_private_key = mnemonic_to_private_key(_config.mnemonic, &_config.password)
+        .unwrap()
+        .into();
 
     // This should be failed since the count is above 10
     let msg = json!({
         "increment": {"count": 20u64}
     });
 
-    execute::send_execute(
+    let _result = execute::send_execute(
         &sender_private_key,
         &_config.chain_id,
         &_config.rpc,
@@ -191,7 +200,7 @@ async fn test_execute_increment_fail() {
         2000000,
         None,
     )
-    .await
+    .await;
     // deliver_tx failed: TxResult { code: Err(5), data: None, log: Log("\ngithub.com/CosmWasm/wasmd/x/wasm/keeper.Keeper.execute\n\tgithub.com/CosmWasm/wasmd@v0.27.0/x/wasm/keeper/keeper.go:364\ngithub.com/CosmWasm/wasmd/x/wasm/keeper.PermissionedKeeper.Execute\n\tgithub.com/CosmWasm/wasmd@v0.27.0/x/wasm/keeper/contract_keeper.go:51\ngithub.com/CosmWasm/wasmd/x/wasm/keeper.msgServer.ExecuteContract\n\tgithub.com/CosmWasm/wasmd@v0.27.0/x/wasm/keeper/msg_server.go:93\ngithub.com/CosmWasm/wasmd/x/wasm/types._Msg_ExecuteContract_Handler.func1\n\tgithub.com/CosmWasm/wasmd@v0.27.0/x/wasm/types/tx.pb.go:849\ngithub.com/cosmos/cosmos-sdk/baseapp.(*MsgServiceRouter).RegisterService.func2.1\n\tgithub.com/cosmos/cosmos-sdk@v0.45.4/baseapp/msg_service_router.go:113\ngithub.com/CosmWasm/wasmd/x/wasm/types._Msg_ExecuteContract_Handler\n\tgithub.com/CosmWasm/wasmd@v0.27.0/x/wasm/types/tx.pb.go:851\ngithub.com/cosmos/cosmos-sdk/baseapp.(*MsgServiceRouter).RegisterService.func2\n\tgithub.com/cosmos/cosmos-sdk@v0.45.4/baseapp/msg_service_router.go:117\ngithub.com/cosmos/cosmos-sdk/baseapp.(*BaseApp).runMsgs\n\tgithub.com/cosmos/cosmos-sdk@v0.45.4/baseapp/baseapp.go:736\ngithub.com/cosmos/cosmos-sdk/baseapp.(*BaseApp).runTx\n\tgithub.com/cosmos/cosmos-sdk@v0.45.4/baseapp/baseapp.go:693\ngithub.com/cosmos/cosmos-sdk/baseapp.(*BaseApp).DeliverTx\n\tgithub.com/cosmos/cosmos-sdk@v0.45.4/baseapp/abci.go:276\ngithub.com/tendermint/tendermint/abci/client.(*localClient).DeliverTxAsync\n\tgithub.com/tendermint/tendermint@v0.34.19/abci/client/local_client.go:93\ngithub.com/tendermint/tendermint/proxy.(*appConnConsensus).DeliverTxAsync\n\tgithub.com/tendermint/tendermint@v0.34.19/proxy/app_conn.go:85\ngithub.com/tendermint/tendermint/state.execBlockOnProxyApp\n\tgithub.com/tendermint/tendermint@v0.34.19/state/execution.go:320\ngithub.com/tendermint/tendermint/state.(*BlockExecutor).ApplyBlock\n\tgithub.com/tendermint/tendermint@v0.34.19/state/execution.go:140\ngithub.com/tendermint/tendermint/consensus.(*State).finalizeCommit\n\tgithub.com/tendermint/tendermint@v0.34.19/consensus/state.go:1655\ngithub.com/tendermint/tendermint/consensus.(*State).tryFinalizeCommit\n\tgithub.com/tendermint/tendermint@v0.34.19/consensus/state.go:1564\ngithub.com/tendermint/tendermint/consensus.(*State).enterCommit.func1\n\tgithub.com/tendermint/tendermint@v0.34.19/consensus/state.go:1499\ngithub.com/tendermint/tendermint/consensus.(*State).enterCommit\n\tgithub.com/tendermint/tendermint@v0.34.19/consensus/state.go:1537\ngithub.com/tendermint/tendermint/consensus.(*State).addVote\n\tgithub.com/tendermint/tendermint@v0.34.19/consensus/state.go:2151\ngithub.com/tendermint/tendermint/consensus.(*State).tryAddVote\n\tgithub.com/tendermint/tendermint@v0.34.19/consensus/state.go:1949\ngithub.com/tendermint/tendermint/consensus.(*State).handleMsg\n\tgithub.com/tendermint/tendermint@v0.34.19/consensus/state.go:856\ngithub.com/tendermint/tendermint/consensus.(*State).receiveRoutine\n\tgithub.com/tendermint/tendermint@v0.34.19/consensus/state.go:763\nfailed to execute message; message index: 0: Unauthorized: execute wasm contract failed"), info: Info(""), gas_wanted: Gas(2000000), gas_used: Gas(136934), events: [Event { type_str: "coin_spent", attributes: [Tag { key: Key("spender"), value: Value("juno175ersy4z8pmqqx5pmjgfn7qv4ksxslwq56e89a") }, Tag { key: Key("amount"), value: Value("2000000ujunox") }] }, Event { type_str: "coin_received", attributes: [Tag { key: Key("receiver"), value: Value("juno17xpfvakm2amg962yls6f84z3kell8c5lxtqmvp") }, Tag { key: Key("amount"), value: Value("2000000ujunox") }] }, Event { type_str: "transfer", attributes: [Tag { key: Key("recipient"), value: Value("juno17xpfvakm2amg962yls6f84z3kell8c5lxtqmvp") }, Tag { key: Key("sender"), value: Value("juno175ersy4z8pmqqx5pmjgfn7qv4ksxslwq56e89a") }, Tag { key: Key("amount"), value: Value("2000000ujunox") }] }, Event { type_str: "message", attributes: [Tag { key: Key("sender"), value: Value("juno175ersy4z8pmqqx5pmjgfn7qv4ksxslwq56e89a") }] }, Event { type_str: "tx", attributes: [Tag { key: Key("fee"), value: Value("2000000ujunox") }] }, Event { type_str: "tx", attributes: [Tag { key: Key("acc_seq"), value: Value("juno175ersy4z8pmqqx5pmjgfn7qv4ksxslwq56e89a/7") }] }, Event { type_str: "tx", attributes: [Tag { key: Key("signature"), value: Value("0L/dWmc2BtaBOFzqx8FWH8gVgOFFeES9KzsSZKclJ58JhsVjM8ekbR6uPLfaHMDxzKuI3AAd/Mc9FHzjYbtmNQ==") }] }], codespace: Codespace("wasm") }
 }
 
@@ -205,13 +214,15 @@ async fn test_execute_increment() {
     );
     let _config = Config::read_from_path(full_path);
 
-    let sender_private_key = mnemonic_to_private_key(_config.mnemonic, &_config.password);
+    let sender_private_key = mnemonic_to_private_key(_config.mnemonic, &_config.password)
+        .unwrap()
+        .into();
 
     let msg = json!({
         "increment": {"count": 5u64}
     });
 
-    execute::send_execute(
+    let _result = execute::send_execute(
         &sender_private_key,
         &_config.chain_id,
         &_config.rpc,
@@ -225,7 +236,7 @@ async fn test_execute_increment() {
         2000000,
         None,
     )
-    .await
+    .await;
     // [{"events":[{"type":"coin_received","attributes":[{"key":"receiver","value":"juno1cc9juyhhv74uwflnaw3x3h4qy8xglplshlt9fc6h39vfyd8kfjdsggfpvf"},{"key":"amount","value":"10000ujunox"}]},{"type":"coin_spent","attributes":[{"key":"spender","value":"juno175ersy4z8pmqqx5pmjgfn7qv4ksxslwq56e89a"},{"key":"amount","value":"10000ujunox"}]},{"type":"execute","attributes":[{"key":"_contract_address","value":"juno1cc9juyhhv74uwflnaw3x3h4qy8xglplshlt9fc6h39vfyd8kfjdsggfpvf"}]},{"type":"message","attributes":[{"key":"action","value":"/cosmwasm.wasm.v1.MsgExecuteContract"},{"key":"module","value":"wasm"},{"key":"sender","value":"juno175ersy4z8pmqqx5pmjgfn7qv4ksxslwq56e89a"}]},{"type":"transfer","attributes":[{"key":"recipient","value":"juno1cc9juyhhv74uwflnaw3x3h4qy8xglplshlt9fc6h39vfyd8kfjdsggfpvf"},{"key":"sender","value":"juno175ersy4z8pmqqx5pmjgfn7qv4ksxslwq56e89a"},{"key":"amount","value":"10000ujunox"}]},{"type":"wasm","attributes":[{"key":"_contract_address","value":"juno1cc9juyhhv74uwflnaw3x3h4qy8xglplshlt9fc6h39vfyd8kfjdsggfpvf"},{"key":"method","value":"try_increment"},{"key":"count","value":"105"}]}]}]
 }
 
@@ -239,13 +250,15 @@ async fn test_execute_reset() {
     );
     let _config = Config::read_from_path(full_path);
 
-    let sender_private_key = mnemonic_to_private_key(_config.mnemonic, &_config.password);
+    let sender_private_key = mnemonic_to_private_key(_config.mnemonic, &_config.password)
+        .unwrap()
+        .into();
 
     let msg = json!({
         "reset": {"count": 50u64}
     });
 
-    execute::send_execute(
+    let _result = execute::send_execute(
         &sender_private_key,
         &_config.chain_id,
         &_config.rpc,
@@ -259,7 +272,7 @@ async fn test_execute_reset() {
         2000000,
         None,
     )
-    .await
+    .await;
     // [{"events":[{"type":"coin_received","attributes":[{"key":"receiver","value":"juno1cc9juyhhv74uwflnaw3x3h4qy8xglplshlt9fc6h39vfyd8kfjdsggfpvf"},{"key":"amount","value":"10000ujunox"}]},{"type":"coin_spent","attributes":[{"key":"spender","value":"juno175ersy4z8pmqqx5pmjgfn7qv4ksxslwq56e89a"},{"key":"amount","value":"10000ujunox"}]},{"type":"execute","attributes":[{"key":"_contract_address","value":"juno1cc9juyhhv74uwflnaw3x3h4qy8xglplshlt9fc6h39vfyd8kfjdsggfpvf"}]},{"type":"message","attributes":[{"key":"action","value":"/cosmwasm.wasm.v1.MsgExecuteContract"},{"key":"module","value":"wasm"},{"key":"sender","value":"juno175ersy4z8pmqqx5pmjgfn7qv4ksxslwq56e89a"}]},{"type":"transfer","attributes":[{"key":"recipient","value":"juno1cc9juyhhv74uwflnaw3x3h4qy8xglplshlt9fc6h39vfyd8kfjdsggfpvf"},{"key":"sender","value":"juno175ersy4z8pmqqx5pmjgfn7qv4ksxslwq56e89a"},{"key":"amount","value":"10000ujunox"}]},{"type":"wasm","attributes":[{"key":"_contract_address","value":"juno1cc9juyhhv74uwflnaw3x3h4qy8xglplshlt9fc6h39vfyd8kfjdsggfpvf"},{"key":"method","value":"reset"}]}]}]
 }
 
@@ -276,7 +289,9 @@ async fn test_store_contract() {
     );
     let _config = Config::read_from_path(full_path);
 
-    let sender_private_key = mnemonic_to_private_key(_config.mnemonic, &_config.password);
+    let sender_private_key = mnemonic_to_private_key(_config.mnemonic, &_config.password)
+        .unwrap()
+        .into();
 
     let code_id = deploy::store_contract(
         &sender_private_key,
@@ -285,12 +300,13 @@ async fn test_store_contract() {
         &_config.full_node_url,
         &_config.chain_id,
         &_config.denom,
-        None,
+        Some("test memo"),
         20000000,
         20000000,
         &_config.account_prefix,
     )
-    .await;
+    .await
+    .unwrap();
 
     println!("{}", code_id);
     // [{"events":[{"type":"message","attributes":[{"key":"action","value":"/cosmwasm.wasm.v1.MsgStoreCode"},{"key":"module","value":"wasm"},{"key":"sender","value":"juno175ersy4z8pmqqx5pmjgfn7qv4ksxslwq56e89a"}]},{"type":"store_code","attributes":[{"key":"code_id","value":"2924"}]}]}]
@@ -307,9 +323,11 @@ async fn test_instantiate_contract() {
     );
     let _config = Config::read_from_path(full_path);
 
-    let sender_private_key = mnemonic_to_private_key(_config.mnemonic, &_config.password);
+    let sender_private_key = mnemonic_to_private_key(_config.mnemonic, &_config.password)
+        .unwrap()
+        .into();
     let (_, sender_account_id) =
-        private_to_pub_and_account(&sender_private_key, &_config.account_prefix);
+        private_to_pub_and_account(&sender_private_key, &_config.account_prefix).unwrap();
 
     let msg = json!({
         "count": 100u64,
@@ -323,14 +341,15 @@ async fn test_instantiate_contract() {
         &_config.full_node_url,
         &_config.chain_id,
         &_config.denom,
-        None,
+        Some("test memo"),
         serde_json::to_vec(&msg).unwrap(),
         20000000,
         20000000,
         &_config.account_prefix,
         10000,
     )
-    .await;
+    .await
+    .unwrap();
 
     println!("{}", contract_address);
     // [{"events":[{"type":"coin_received","attributes":[{"key":"receiver","value":"juno1cc9juyhhv74uwflnaw3x3h4qy8xglplshlt9fc6h39vfyd8kfjdsggfpvf"},{"key":"amount","value":"10000ujunox"}]},{"type":"coin_spent","attributes":[{"key":"spender","value":"juno175ersy4z8pmqqx5pmjgfn7qv4ksxslwq56e89a"},{"key":"amount","value":"10000ujunox"}]},{"type":"instantiate","attributes":[{"key":"_contract_address","value":"juno1cc9juyhhv74uwflnaw3x3h4qy8xglplshlt9fc6h39vfyd8kfjdsggfpvf"},{"key":"code_id","value":"2924"}]},{"type":"message","attributes":[{"key":"action","value":"/cosmwasm.wasm.v1.MsgInstantiateContract"},{"key":"module","value":"wasm"},{"key":"sender","value":"juno175ersy4z8pmqqx5pmjgfn7qv4ksxslwq56e89a"}]},{"type":"transfer","attributes":[{"key":"recipient","value":"juno1cc9juyhhv74uwflnaw3x3h4qy8xglplshlt9fc6h39vfyd8kfjdsggfpvf"},{"key":"sender","value":"juno175ersy4z8pmqqx5pmjgfn7qv4ksxslwq56e89a"},{"key":"amount","value":"10000ujunox"}]},{"type":"wasm","attributes":[{"key":"_contract_address","value":"juno1cc9juyhhv74uwflnaw3x3h4qy8xglplshlt9fc6h39vfyd8kfjdsggfpvf"},{"key":"method","value":"instantiate"},{"key":"auth","value":"juno175ersy4z8pmqqx5pmjgfn7qv4ksxslwq56e89a"},{"key":"count","value":"100"}]}]}]
