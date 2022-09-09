@@ -1,4 +1,3 @@
-use base64;
 use cosmrs::{
     bip32::{self},
     crypto::secp256k1,
@@ -55,7 +54,7 @@ async fn check_block_number() {
         .as_str()
         .unwrap();
 
-    let mut response_second = response_first.clone();
+    let mut response_second;
     let mut second_block_height = first_block_height;
 
     while first_block_height == second_block_height {
