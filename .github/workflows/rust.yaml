@@ -82,3 +82,11 @@ jobs:
       - name: build schema for simple-counter
         working-directory: contracts/simple-counter
         run: cargo schema
+      
+      - name: build light-client
+        working-directory: contracts/light-client
+        run: cargo wasm
+
+      - name: build schema for light-client
+        working-directory: contracts/light-client
+        run: cargo schema
