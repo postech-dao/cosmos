@@ -47,9 +47,9 @@ cw2 = "0.13.2"
 schemars = "0.8.8"
 serde = { version = "1.0.137", default-features = false, features = ["derive"] }
 thiserror = { version = "1.0.31" }
-pdao-colony-common = { version = "0.1.0" }
-pdao-colony-contract-common = { version = "0.1.1" }
-pdao-beacon-chain-common = {version = "0.0.2", features = ["cosmos"]}
+pdao-colony-common = { version = "0.1.1" }
+pdao-colony-contract-common = { version = "0.1.2", features=["cosmos"] }
+pdao-beacon-chain-common = {version = "0.1.0", features = ["cosmos"]}
 
 [dev-dependencies]
 cosmwasm-schema = "1.0.0"
