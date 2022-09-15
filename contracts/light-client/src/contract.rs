@@ -17,7 +17,7 @@ const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 pub fn instantiate(
     deps: DepsMut,
     _env: Env,
-    info: MessageInfo,
+    _info: MessageInfo,
     msg: InstantiateMsg,
 ) -> Result<Response, ContractError> {
     let state = State {
@@ -49,12 +49,12 @@ pub fn execute(
 
 pub fn execute_update(
     deps: DepsMut,
-    env: Env,
-    info: MessageInfo,
+    _env: Env,
+    _info: MessageInfo,
     header: String,
     proof: String,
 ) -> Result<Response, ContractError> {
-    let result = STATE.update(deps.storage, |mut state| -> Result<_, ContractError> {
+    let _result = STATE.update(deps.storage, |mut state| -> Result<_, ContractError> {
         if state.light_client.update(header, proof) {
             Ok(state)
         } else {
@@ -67,13 +67,13 @@ pub fn execute_update(
 
 pub fn execute_verify(
     deps: DepsMut,
-    env: Env,
-    info: MessageInfo,
+    _env: Env,
+    _info: MessageInfo,
     message: DeliverableMessage,
     block_height: u64,
     proof: String,
 ) -> Result<Response, ContractError> {
-    let result = STATE.update(deps.storage, |mut state| -> Result<_, ContractError> {
+    let _result = STATE.update(deps.storage, |state| -> Result<_, ContractError> {
         if state
             .light_client
             .verify_commitment(message, block_height, proof)
