@@ -58,7 +58,7 @@ pub fn execute_update(
         if state.light_client.update(header, proof) {
             Ok(state)
         } else {
-            return Err(ContractError::UpdateFail {});
+            Err(ContractError::UpdateFail {})
         }
     })?;
 
@@ -80,7 +80,7 @@ pub fn execute_verify(
         {
             Ok(state)
         } else {
-            return Err(ContractError::VerifyFail {});
+            Err(ContractError::VerifyFail {})
         }
     })?;
 
