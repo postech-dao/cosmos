@@ -3,6 +3,17 @@ This repository implements the colony chain interface for Cosmos that can intera
 
 ## Development
 
+### Setup Rust
+```sh
+rustup default stable
+cargo version
+# If this is lower than 1.55.0+, update
+rustup update stable
+
+rustup target list --installed
+rustup target add wasm32-unknown-unknown
+```
+
 ### Build
 ```
 cargo build --all
