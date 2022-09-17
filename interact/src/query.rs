@@ -22,6 +22,32 @@ pub async fn send_query(
     Ok(result)
 }
 
+pub async fn get_latest_block_height(rest_api_endpoint: &str) -> Result<u64, Box<dyn Error>> {
+    let client = reqwest::Client::new();
+
+    let response = request(&client, &format!("{}/status?", rest_api_endpoint), None).await?;
+
+    let latest_block_height = response["result"]["sync_info"]["latest_block_height"]
+        .as_str()
+        .ok_or("Failed to convert code id to &str")?
+        .parse::<u64>()?;
+
+    Ok(latest_block_height)
+}
+
+pub async fn get_latest_block_timestamp(rest_api_endpoint: &str) -> Result<u64, Box<dyn Error>> {
+    let client = reqwest::Client::new();
+
+    let response = request(&client, &format!("{}/status?", rest_api_endpoint), None).await?;
+
+    let latest_block_timestamp = response["result"]["sync_info"]["latest_block_time"]
+        .as_str()
+        .ok_or("Failed to convert code id to &str")?
+        .parse::<u64>()?;
+
+    Ok(latest_block_timestamp)
+}
+
 pub async fn get_code_id(
     rest_api_endpoint: &str,
     contract_address: &str,
