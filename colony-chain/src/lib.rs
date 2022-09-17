@@ -1,11 +1,17 @@
 use async_trait::async_trait;
 use pdao_colony_common::*;
 use pdao_colony_contract_common::*;
+use pdao_cosmos_interact::query;
 use rust_decimal::prelude::*;
 use rust_decimal_macros::dec;
 use std::collections::HashMap;
 
-pub struct Juno {}
+pub struct Juno {
+    pub full_node_url: String,
+    pub rpc_url: String,
+    pub treasury_address: String,
+    pub lightclient_address: String,
+}
 
 #[async_trait]
 impl ColonyChain for Juno {
@@ -14,25 +20,28 @@ impl ColonyChain for Juno {
     }
 
     async fn get_last_block(&self) -> Result<Block, Error> {
-        Ok(Block {
-            height: 0,
-            timestamp: 0,
-        })
+        let height = query::get_latest_block_height(&self.rpc_url).await.unwrap();
+        let timestamp = query::get_latest_block_timestamp(&self.rpc_url)
+            .await
+            .unwrap();
+
+        Ok(Block { height, timestamp })
     }
 
     async fn check_connection(&self) -> Result<(), Error> {
+        let _height = query::get_latest_block_height(&self.rpc_url).await;
         Ok(())
     }
 
     async fn get_contract_list(&self) -> Result<Vec<ContractInfo>, Error> {
         Ok(vec![
             ContractInfo {
-                address: "0xabcd".to_owned(),
+                address: self.lightclient_address.clone(),
                 contract_type: ContractType::LightClient,
                 sequence: 0,
             },
             ContractInfo {
-                address: "0x1234".to_owned(),
+                address: self.treasury_address.clone(),
                 contract_type: ContractType::Treasury,
                 sequence: 0,
             },
