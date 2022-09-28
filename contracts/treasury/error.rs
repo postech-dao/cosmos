@@ -1,26 +1,46 @@
-use cosmwasm_std::{Addr, StdError};
+use cosmwasm_std::{StdError, Uint128};
 use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]
 pub enum ContractError {
     #[error("{0}")]
     Std(#[from] StdError),
-    #[error("{0}")]
-    Cw20Error(#[from] cw20_base::ContractError),
-    #[error("Nothing to claim")]
-    NothingToClaim {},
-    #[error("Invalid token")]
-    InvalidToken { received: Addr, expected: Addr },
+
     #[error("Unauthorized")]
     Unauthorized {},
-    #[error("Too many outstanding claims. Claim some tokens before unstaking more.")]
-    TooManyClaims {},
-    #[error("No admin configured")]
-    NoAdminConfigured {},
-    #[error("{0}")]
-    HookError(#[from] cw_controllers::HookError),
-    #[error("Only owner can change owner")]
-    OnlyOwnerCanChangeOwner {},
-    #[error("Invalid unstaking duration, unstaking duration cannot be 0")]
-    InvalidUnstakingDuration {},
+
+    #[error("Validator '{validator}' not in current validator set")]
+    NotInValidatorSet { validator: String },
+
+    #[error("No {denom} tokens sent")]
+    EmptyBalance { denom: String },
+
+    #[error("Insufficient balance in contract to process claim")]
+    BalanceTooSmall {},
+
+    #[error("Cannot set to own account")]
+    CannotSetOwnAccount {},
+
+    #[error("Invalid zero amount")]
+    InvalidZeroAmount {},
+
+    #[error("Duplicate initial balance addresses")]
+    DuplicateInitialBalanceAddresses {},
+}
+
+impl From<cw20_base::ContractError> for ContractError {
+    fn from(err: cw20_base::ContractError) -> Self {
+        match err {
+            cw20_base::ContractError::Std(error) => ContractError::Std(error),
+            cw20_base::ContractError::Unauthorized {} => ContractError::Unauthorized {},
+            cw20_base::ContractError::CannotSetOwnAccount {} => {
+                ContractError::CannotSetOwnAccount {}
+            }
+            cw20_base::ContractError::InvalidZeroAmount {} => ContractError::InvalidZeroAmount {},
+            // This should never happen, as this contract doesn't use logo
+            cw20_base::ContractError::DuplicateInitialBalanceAddresses {} => {
+                ContractError::DuplicateInitialBalanceAddresses {}
+            }
+        }
+    }
 }

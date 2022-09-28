@@ -1,108 +1,44 @@
-use cosmwasm_std::Uint128;
-use cw20::Cw20ReceiveMsg;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
+use cosmwasm_std::{Binary, Coin, Decimal, Uint128};
+use cw20::Expiration;
+pub use cw_controllers::ClaimsResponse;
 use cw_utils::Duration;
 
-pub use cw_controllers::ClaimsResponse;
-
-#[derive(Serialize, Deserialize, JsonSchema, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct InstantiateMsg {
-    pub owner: Option<String>,
-    pub manager: Option<String>,
-    pub token_address: String,
-    pub unstaking_duration: Option<Duration>,
+    /// name of the derivative token
+    pub name: String,
+    /// symbol / ticker of the derivative token
+    pub symbol: String,
+    /// decimal places of the derivative token (for UI)
+    pub decimals: u8,
+
+    /// This is the validator that all tokens will be bonded to
+    pub validator: String,
+    /// This is the unbonding period of the native staking module
+    /// We need this to only allow claims to be redeemed after the money has arrived
+    pub unbonding_period: Duration,
+
+    /// this is how much the owner takes as a cut when someone unbonds
+    pub exit_tax: Decimal,
+    /// This is the minimum amount we will pull out to reinvest, as well as a minimum
+    /// that can be unbonded (to avoid needless staking tx)
+    pub min_withdrawal: Uint128,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum ExecuteMsg {
-    Receive(Cw20ReceiveMsg),
-    Unstake {
-        amount: Uint128,
-    },
-    Claim {},
-    UpdateConfig {
-        owner: Option<String>,
-        manager: Option<String>,
-        duration: Option<Duration>,
-    },
+    /// Implements CW20. Transfer is a base message to move tokens to another account without triggering actions
+    transfer_treasury_fungible_token { recipient: String, amount: Uint128 },
+
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-#[serde(rename_all = "snake_case")]
-pub enum ReceiveMsg {
-    Stake {},
-    Fund {},
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
-    StakedBalanceAtHeight {
-        address: String,
-        height: Option<u64>,
-    },
-    TotalStakedAtHeight {
-        height: Option<u64>,
-    },
-    StakedValue {
-        address: String,
-    },
-    TotalValue {},
-    GetConfig {},
-    Claims {
-        address: String,
-    },
-    ListStakers {
-        start_after: Option<String>,
-        limit: Option<u32>,
-    },
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-#[serde(rename_all = "snake_case")]
-pub enum MigrateMsg {
-    FromBeta { manager: Option<String> },
-    FromCompatible {},
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-#[serde(rename_all = "snake_case")]
-pub struct StakedBalanceAtHeightResponse {
-    pub balance: Uint128,
-    pub height: u64,
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-#[serde(rename_all = "snake_case")]
-pub struct TotalStakedAtHeightResponse {
-    pub total: Uint128,
-    pub height: u64,
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-#[serde(rename_all = "snake_case")]
-pub struct StakedValueResponse {
-    pub value: Uint128,
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-#[serde(rename_all = "snake_case")]
-pub struct TotalValueResponse {
-    pub total: Uint128,
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-#[serde(rename_all = "snake_case")]
-pub struct ListStakersResponse {
-    pub stakers: Vec<StakerBalanceResponse>,
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-#[serde(rename_all = "snake_case")]
-pub struct StakerBalanceResponse {
-    pub address: String,
-    pub balance: Uint128,
+    /// Implements CW20. Returns the current balance of the given address, 0 if unset.
+    get_treasury_fungible_token_balance { address: String },
 }
