@@ -1,9 +1,15 @@
 use async_trait::async_trait;
+use cosmwasm_std::from_binary;
+use cosmwasm_std::testing::{mock_dependencies, mock_env};
 use pdao_colony_common::*;
 use pdao_colony_contract_common::*;
-use pdao_cosmos_interact::query;
+use pdao_cosmos_interact::{execute, query};
+use pdao_cosmos_light_client::query; //needs to be change
 use rust_decimal::prelude::*;
 use rust_decimal_macros::dec;
+
+
+use serde_json::json;
 use std::collections::HashMap;
 
 pub struct Juno {
@@ -11,6 +17,13 @@ pub struct Juno {
     pub rpc_url: String,
     pub treasury_address: String,
     pub lightclient_address: String,
+    pub relayer_account: String,
+
+    pub chain_id: String,
+    pub denom: String,
+    pub mnemonic: String,
+    pub password: String,
+    pub account_prefix: String,
 }
 
 #[async_trait]
@@ -23,13 +36,16 @@ impl ColonyChain for Juno {
         let height = query::get_latest_block_height(&self.rpc_url).await.unwrap();
         let timestamp = query::get_latest_block_timestamp(&self.rpc_url)
             .await
-            .unwrap();
+            .map_err(|_| Error::ConnectionError("test".to_string()))?;
 
         Ok(Block { height, timestamp })
     }
 
     async fn check_connection(&self) -> Result<(), Error> {
-        let _height = query::get_latest_block_height(&self.rpc_url).await;
+        let _height = query::get_latest_block_height(&self.rpc_url)
+            .await
+            .map_err(|_| Error::ConnectionError("test".to_string()))?;
+            
         Ok(())
     }
 
@@ -49,11 +65,21 @@ impl ColonyChain for Juno {
     }
 
     async fn get_relayer_account_info(&self) -> Result<(String, Decimal), Error> {
-        Ok(("0x12341234".to_owned(), dec!(12.34)))
+        let balance_str = pdao_cosmos_interact::query::get_balance_amount(&self.full_node_url, &self.relayer_account)
+            .await
+            .map_err(|_| Error::ConnectionError("test".to_string()))?
+            .as_str();
+        let balance = Decimal::from_str(balance_str).map_err(|_| Error::ConnectionError("test".to_string()))?;
+
+        Ok((self.relayer_account, balance))
     }
 
     async fn get_light_client_header(&self) -> Result<Header, Error> {
-        Ok("Hmm".to_owned())
+        let mut deps = mock_dependencies();
+        let res = pdao_cosmos_light_client::query(deps.as_ref(), mock_env(), QueryMsg::GetHeader {})?;
+        let response: GetHeaderResponse = from_binary(&res).map_err(|_| pdao_colony_common::Error::ConnectionError("test".to_string()));
+
+        Ok(response.header.to_owned())
     }
 
     async fn get_treasury_fungible_token_balance(&self) -> Result<HashMap<String, Decimal>, Error> {
@@ -75,7 +101,31 @@ impl ColonyChain for Juno {
     }
 
     async fn update_light_client(&self, _message: LightClientUpdateMessage) -> Result<(), Error> {
-        Ok(())
+        let msg = json!({
+            "update": {
+                "header": _message.header,
+                "proof": _message.proof
+            }
+        });
+        
+        let result = execute::send_execute_test(
+            self.mnemonic.clone(),
+            &self.password,
+            &self.chain_id,
+            &self.rpc_url,
+            &self.full_node_url,
+            &self.denom,
+            &self.account_prefix,
+            10000,
+            &self.lightclient_address,
+            serde_json::to_vec(&msg).unwrap(),
+            2000000,
+            2000000,
+            None,
+        ).await
+        .map_err(|_| pdao_colony_common::Error::TransactionRejected("test".to_string()));
+        
+        result
     }
 
     async fn transfer_treasury_fungible_token(

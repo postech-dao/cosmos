@@ -17,3 +17,4 @@ pdao-cosmos-interact = { path = "../interact"}
 serde-tc = "0.3.3"
 serde_json = { version = "1.0" }
 anyhow = { version = "1.0" }
+cosmwasm-std = "1.0.0"

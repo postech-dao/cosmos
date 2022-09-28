@@ -22,6 +22,30 @@ pub async fn send_query(
     Ok(result)
 }
 
+pub async fn get_balance_amount(
+    rest_api_endpoint: &str,
+    account_address: &str
+) -> Result<String, Box<dyn Error>> {
+    let client = reqwest::Client::new();
+    let response = request(
+        &client,
+        &format!(
+            "{}/cosmos/bank/v1beta1/balances/{}",
+            rest_api_endpoint, account_address
+        ),
+        None,
+    )
+    .await?;
+
+    let current_balance = response["balances"]
+        .as_array()
+        .ok_or("Failed to convert balance to array")?[0]["amount"]
+        .to_string();
+
+
+    Ok(current_balance)
+}
+
 pub async fn get_latest_block_height(rest_api_endpoint: &str) -> Result<u64, Box<dyn Error>> {
     let client = reqwest::Client::new();
 
