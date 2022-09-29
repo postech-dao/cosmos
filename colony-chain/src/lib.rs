@@ -108,7 +108,7 @@ impl ColonyChain for Juno {
             }
         });
         
-        let result = execute::send_execute_test(
+        let result = execute::send_execute(
             self.mnemonic.clone(),
             &self.password,
             &self.chain_id,
