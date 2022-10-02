@@ -8,14 +8,8 @@ pub struct InstantiateMsg {
     pub name: String,
     /// Symbol of the NFT contract
     pub symbol: String,
-
-    /// The minter is the only one who can create new NFTs.
-    /// This is designed for a base NFT that is controlled by an external program
-    /// or contract. You will likely replace this with custom logic in custom NFTs
-    pub minter: String,
 }
 
-/// This is like Cw721ExecuteMsg but we add a Mint command for an owner
 /// to make this stand-alone. You will likely want to remove mint and
 /// use other control logic in any contract that inherits this.
 #[cw_serde]
@@ -46,12 +40,6 @@ pub enum ExecuteMsg<T, E> {
     },
     /// Remove previously granted ApproveAll permission
     RevokeAll { operator: String },
-
-    /// Mint a new NFT, can only be called by the contract minter
-    Mint(MintMsg<T>),
-
-    /// Burn an NFT the sender has access to
-    Burn { token_id: String },
 
     /// Extension msg
     Extension { msg: E },
@@ -125,17 +113,8 @@ pub enum QueryMsg<Q> {
         limit: Option<u32>,
     },
 
-    // Return the minter
-    Minter {},
-
     /// Extension query
     Extension {
         msg: Q,
     },
-}
-
-/// Shows who can mint these tokens
-#[cw_serde]
-pub struct MinterResponse {
-    pub minter: String,
 }

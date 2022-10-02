@@ -7,7 +7,7 @@ use cw2::set_contract_version;
 use cw721::{ContractInfoResponse, CustomMsg, Cw721Execute, Cw721ReceiveMsg, Expiration};
 
 use crate::error::ContractError;
-use crate::msg::{ExecuteMsg, InstantiateMsg, MintMsg};
+use crate::msg::{ExecuteMsg, InstantiateMsg};
 use crate::state::{Approval, Cw721Contract, TokenInfo};
 
 // Version info for migration
@@ -35,8 +35,6 @@ where
             symbol: msg.symbol,
         };
         self.contract_info.save(deps.storage, &info)?;
-        let minter = deps.api.addr_validate(&msg.minter)?;
-        self.minter.save(deps.storage, &minter)?;
         Ok(Response::default())
     }
 
@@ -48,7 +46,6 @@ where
         msg: ExecuteMsg<T, E>,
     ) -> Result<Response<C>, ContractError> {
         match msg {
-            ExecuteMsg::Mint(msg) => self.mint(deps, env, info, msg),
             ExecuteMsg::Approve {
                 spender,
                 token_id,
@@ -70,53 +67,8 @@ where
                 token_id,
                 msg,
             } => self.send_nft(deps, env, info, contract, token_id, msg),
-            ExecuteMsg::Burn { token_id } => self.burn(deps, env, info, token_id),
             ExecuteMsg::Extension { msg: _ } => Ok(Response::default()),
         }
-    }
-}
-
-// TODO pull this into some sort of trait extension??
-impl<'a, T, C, E, Q> Cw721Contract<'a, T, C, E, Q>
-where
-    T: Serialize + DeserializeOwned + Clone,
-    C: CustomMsg,
-    E: CustomMsg,
-    Q: CustomMsg,
-{
-    pub fn mint(
-        &self,
-        deps: DepsMut,
-        _env: Env,
-        info: MessageInfo,
-        msg: MintMsg<T>,
-    ) -> Result<Response<C>, ContractError> {
-        let minter = self.minter.load(deps.storage)?;
-
-        if info.sender != minter {
-            return Err(ContractError::Unauthorized {});
-        }
-
-        // create the token
-        let token = TokenInfo {
-            owner: deps.api.addr_validate(&msg.owner)?,
-            approvals: vec![],
-            token_uri: msg.token_uri,
-            extension: msg.extension,
-        };
-        self.tokens
-            .update(deps.storage, &msg.token_id, |old| match old {
-                Some(_) => Err(ContractError::Claimed {}),
-                None => Ok(token),
-            })?;
-
-        self.increment_tokens(deps.storage)?;
-
-        Ok(Response::new()
-            .add_attribute("action", "mint")
-            .add_attribute("minter", info.sender)
-            .add_attribute("owner", msg.owner)
-            .add_attribute("token_id", msg.token_id))
     }
 }
 
@@ -248,25 +200,6 @@ where
             .add_attribute("action", "revoke_all")
             .add_attribute("sender", info.sender)
             .add_attribute("operator", operator))
-    }
-
-    fn burn(
-        &self,
-        deps: DepsMut,
-        env: Env,
-        info: MessageInfo,
-        token_id: String,
-    ) -> Result<Response<C>, ContractError> {
-        let token = self.tokens.load(deps.storage, &token_id)?;
-        self.check_can_send(deps.as_ref(), &env, &info, &token)?;
-
-        self.tokens.remove(deps.storage, &token_id)?;
-        self.decrement_tokens(deps.storage)?;
-
-        Ok(Response::new()
-            .add_attribute("action", "burn")
-            .add_attribute("sender", info.sender)
-            .add_attribute("token_id", token_id))
     }
 }
 

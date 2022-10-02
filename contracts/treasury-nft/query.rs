@@ -11,7 +11,7 @@ use cw721::{
 use cw_storage_plus::Bound;
 use cw_utils::maybe_addr;
 
-use crate::msg::{MinterResponse, QueryMsg};
+use crate::msg::{QueryMsg};
 use crate::state::{Approval, Cw721Contract, TokenInfo};
 
 const DEFAULT_LIMIT: u32 = 10;
@@ -214,16 +214,8 @@ where
     E: CustomMsg,
     Q: CustomMsg,
 {
-    pub fn minter(&self, deps: Deps) -> StdResult<MinterResponse> {
-        let minter_addr = self.minter.load(deps.storage)?;
-        Ok(MinterResponse {
-            minter: minter_addr.to_string(),
-        })
-    }
-
     pub fn query(&self, deps: Deps, env: Env, msg: QueryMsg<Q>) -> StdResult<Binary> {
         match msg {
-            QueryMsg::Minter {} => to_binary(&self.minter(deps)?),
             QueryMsg::ContractInfo {} => to_binary(&self.contract_info(deps)?),
             QueryMsg::NftInfo { token_id } => to_binary(&self.nft_info(deps, token_id)?),
             QueryMsg::OwnerOf {
