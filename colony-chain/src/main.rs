@@ -19,6 +19,12 @@ async fn main() {
                 rpc_url: "https://rpc.uni.juno.deuslabs.fi".to_string(),
                 treasury_address: "".to_string(),
                 lightclient_address: "".to_string(),
+                relayer_account: "".to_string(),
+                chain_id: "".to_string(),
+                denom: "".to_string(),
+                mnemonic: "".to_string(),
+                password: "".to_string(),
+                account_prefix: "".to_string(),
             }) as Arc<dyn ColonyChain>),
         )]
         .into_iter()

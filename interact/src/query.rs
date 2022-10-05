@@ -24,7 +24,7 @@ pub async fn send_query(
 
 pub async fn get_balance_amount(
     rest_api_endpoint: &str,
-    account_address: &str
+    account_address: &str,
 ) -> Result<String, Box<dyn Error>> {
     let client = reqwest::Client::new();
     let response = request(
@@ -41,7 +41,6 @@ pub async fn get_balance_amount(
         .as_array()
         .ok_or("Failed to convert balance to array")?[0]["amount"]
         .to_string();
-
 
     Ok(current_balance)
 }

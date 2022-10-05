@@ -1,13 +1,9 @@
 use async_trait::async_trait;
-use cosmwasm_std::from_binary;
-use cosmwasm_std::testing::{mock_dependencies, mock_env};
 use pdao_colony_common::*;
 use pdao_colony_contract_common::*;
 use pdao_cosmos_interact::{execute, query};
-use pdao_cosmos_light_client::query; //needs to be change
 use rust_decimal::prelude::*;
 use rust_decimal_macros::dec;
-
 
 use serde_json::json;
 use std::collections::HashMap;
@@ -33,10 +29,13 @@ impl ColonyChain for Juno {
     }
 
     async fn get_last_block(&self) -> Result<Block, Error> {
-        let height = query::get_latest_block_height(&self.rpc_url).await.unwrap();
+        let height = query::get_latest_block_height(&self.rpc_url)
+            .await
+            .map_err(|_| Error::ConnectionError("test".to_string()))?; //TODO: error message
+
         let timestamp = query::get_latest_block_timestamp(&self.rpc_url)
             .await
-            .map_err(|_| Error::ConnectionError("test".to_string()))?;
+            .map_err(|_| Error::ConnectionError("test".to_string()))?; //TODO: error message
 
         Ok(Block { height, timestamp })
     }
@@ -44,8 +43,8 @@ impl ColonyChain for Juno {
     async fn check_connection(&self) -> Result<(), Error> {
         let _height = query::get_latest_block_height(&self.rpc_url)
             .await
-            .map_err(|_| Error::ConnectionError("test".to_string()))?;
-            
+            .map_err(|_| Error::ConnectionError("test".to_string()))?; //TODO: error message
+
         Ok(())
     }
 
@@ -65,21 +64,37 @@ impl ColonyChain for Juno {
     }
 
     async fn get_relayer_account_info(&self) -> Result<(String, Decimal), Error> {
-        let balance_str = pdao_cosmos_interact::query::get_balance_amount(&self.full_node_url, &self.relayer_account)
+        let res = query::get_balance_amount(&self.full_node_url, &self.relayer_account)
             .await
-            .map_err(|_| Error::ConnectionError("test".to_string()))?
-            .as_str();
-        let balance = Decimal::from_str(balance_str).map_err(|_| Error::ConnectionError("test".to_string()))?;
+            .map_err(|_| Error::ConnectionError("test".to_string()))?; //TODO: error message
 
-        Ok((self.relayer_account, balance))
+        let balance = Decimal::from_str(res.as_ref())
+            .map_err(|_| Error::ConnectionError("test".to_string()))?; //TODO: error message
+
+        Ok((self.relayer_account.to_owned(), balance))
     }
 
     async fn get_light_client_header(&self) -> Result<Header, Error> {
-        let mut deps = mock_dependencies();
-        let res = pdao_cosmos_light_client::query(deps.as_ref(), mock_env(), QueryMsg::GetHeader {})?;
-        let response: GetHeaderResponse = from_binary(&res).map_err(|_| pdao_colony_common::Error::ConnectionError("test".to_string()));
+        let msg = json!({
+            "get_header": {}
+        });
 
-        Ok(response.header.to_owned())
+        let encode_msg = base64::encode(
+            &serde_json::to_vec(&msg)
+                .map_err(|_| Error::InvalidMessageArgument("test".to_string()))?,
+        ); //TODO: error message
+
+        let response = query::send_query(
+            &self.full_node_url,
+            &self.lightclient_address,
+            encode_msg.as_str(),
+        )
+        .await
+        .map_err(|_| Error::ConnectionError("test".to_string()))?; //TODO: error message
+
+        let header = response["data"]["header"].to_string(); //TODO: current type of header is string
+
+        Ok(header)
     }
 
     async fn get_treasury_fungible_token_balance(&self) -> Result<HashMap<String, Decimal>, Error> {
@@ -107,8 +122,11 @@ impl ColonyChain for Juno {
                 "proof": _message.proof
             }
         });
-        
-        let result = execute::send_execute(
+
+        let execute_msg =
+            serde_json::to_vec(&msg).map_err(|_| Error::ConnectionError("test".to_string()))?; //TODO: error type and message
+
+        execute::send_execute(
             self.mnemonic.clone(),
             &self.password,
             &self.chain_id,
@@ -116,16 +134,15 @@ impl ColonyChain for Juno {
             &self.full_node_url,
             &self.denom,
             &self.account_prefix,
-            10000,
+            10000, //TODO: fix
             &self.lightclient_address,
-            serde_json::to_vec(&msg).unwrap(),
-            2000000,
-            2000000,
+            execute_msg,
+            2000000, //TODO: fix
+            2000000, //TODO: fix
             None,
-        ).await
-        .map_err(|_| pdao_colony_common::Error::TransactionRejected("test".to_string()));
-        
-        result
+        )
+        .await
+        .map_err(|_| pdao_colony_common::Error::TransactionRejected("test".to_string()))
     }
 
     async fn transfer_treasury_fungible_token(

@@ -14,7 +14,9 @@ rust_decimal_macros = "1.25.0"
 pdao-colony-common = { version = "0.0.0" }
 pdao-colony-contract-common = { version = "0.0.0" }
 pdao-cosmos-interact = { path = "../interact"}
+pdao-cosmos-light-client = {path = "../contracts/light-client"}
 serde-tc = "0.3.3"
 serde_json = { version = "1.0" }
 anyhow = { version = "1.0" }
 cosmwasm-std = "1.0.0"
+base64 = "0.13.0"
