@@ -178,17 +178,14 @@ async fn test_execute_increment_fail() {
     );
     let _config = Config::read_from_path(full_path);
 
-    let sender_private_key = mnemonic_to_private_key(_config.mnemonic, &_config.password)
-        .unwrap()
-        .into();
-
     // This should be failed since the count is above 10
     let msg = json!({
         "increment": {"count": 20u64}
     });
 
     let _result = execute::send_execute(
-        &sender_private_key,
+        _config.mnemonic.clone(),
+        &_config.password,
         &_config.chain_id,
         &_config.rpc,
         &_config.full_node_url,
@@ -215,16 +212,13 @@ async fn test_execute_increment() {
     );
     let _config = Config::read_from_path(full_path);
 
-    let sender_private_key = mnemonic_to_private_key(_config.mnemonic, &_config.password)
-        .unwrap()
-        .into();
-
     let msg = json!({
         "increment": {"count": 5u64}
     });
 
     let _result = execute::send_execute(
-        &sender_private_key,
+        _config.mnemonic.clone(),
+        &_config.password,
         &_config.chain_id,
         &_config.rpc,
         &_config.full_node_url,
@@ -251,16 +245,13 @@ async fn test_execute_reset() {
     );
     let _config = Config::read_from_path(full_path);
 
-    let sender_private_key = mnemonic_to_private_key(_config.mnemonic, &_config.password)
-        .unwrap()
-        .into();
-
     let msg = json!({
         "reset": {"count": 50u64}
     });
 
     let _result = execute::send_execute(
-        &sender_private_key,
+        _config.mnemonic.clone(),
+        &_config.password,
         &_config.chain_id,
         &_config.rpc,
         &_config.full_node_url,

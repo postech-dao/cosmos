@@ -14,7 +14,18 @@ async fn main() {
         port,
         vec![(
             "juno".to_owned(),
-            serde_tc::http::create_http_object(Arc::new(Juno {}) as Arc<dyn ColonyChain>),
+            serde_tc::http::create_http_object(Arc::new(Juno {
+                full_node_url: "https://lcd.uni.juno.deuslabs.fi".to_string(),
+                rpc_url: "https://rpc.uni.juno.deuslabs.fi".to_string(),
+                treasury_address: "".to_string(),
+                lightclient_address: "".to_string(),
+                relayer_account: "".to_string(),
+                chain_id: "".to_string(),
+                denom: "".to_string(),
+                mnemonic: "".to_string(),
+                password: "".to_string(),
+                account_prefix: "".to_string(),
+            }) as Arc<dyn ColonyChain>),
         )]
         .into_iter()
         .collect(),
