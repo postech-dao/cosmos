@@ -4,8 +4,7 @@ use cosmwasm_std::{to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response,
 use cw2::set_contract_version;
 use crate::error::ContractError;
 use crate::msg::{ExecuteMsg, QueryMsg};
-use cw20_base::contract::{execute_transfer};
-use cw20_base::
+use cw20_base::contract::{execute_transfer, query_balance};
 
 const CONTRACT_NAME: &str = "crates.io:treasury";
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
