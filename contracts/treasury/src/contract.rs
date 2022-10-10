@@ -28,9 +28,40 @@ pub fn execute(
     msg: ExecuteMsg,
 ) -> Result<Response, ContractError> {
     match msg {
-        ExecuteMsg::Transfer {recipient, amount} => execute_transfer(deps, _env, info, recipient, amount),
+        ExecuteMsg::Transfer {recipient, amount} => execute_verify_and_transfer(deps, _env, info, recipient, amount),
     }
 }
+
+pub fn execute_verify_and_transfer(
+    deps: DepsMut<'_>,
+    _env: Env,
+    info: MessageInfo,
+    recipient: String,
+    amount: Uint128
+) -> Result<Response, ContractError> {
+    if (/* Light Client에서 Verify 문제 없을 때 */) {
+        execute_transfer(deps, _env, info, recipient, amount);
+    } else {
+        Err(ContractError::VerifyFail {})
+    }
+
+
+    // let _result = STATE.update(deps.storage, |state| -> Result<_, ContractError> {
+    //     if state
+    //         .light_client
+    //         .verify_commitment(message, block_height, proof)
+    //     {
+    //         Ok(state)
+    //     } else {
+    //         Err(ContractError::VerifyFail {})
+    //     }
+    // })?;
+
+    Ok(Response::new().add_attribute("method", "execute_verify_and_transfer"))
+}
+
+
+
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
