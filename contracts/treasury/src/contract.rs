@@ -3,7 +3,7 @@ use cosmwasm_std::entry_point;
 use cosmwasm_std::{to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
 use cw2::set_contract_version;
 use crate::error::ContractError;
-use crate::msg::{ExecuteMsg, QueryMsg};
+use crate::msg::{ExecuteMsg, QueryMsg, VerifyMsg};
 use cw20_base::contract::{execute_transfer, query_balance};
 
 const CONTRACT_NAME: &str = "crates.io:treasury";
@@ -28,40 +28,35 @@ pub fn execute(
     msg: ExecuteMsg,
 ) -> Result<Response, ContractError> {
     match msg {
-        ExecuteMsg::Transfer {recipient, amount} => execute_verify_and_transfer(deps, _env, info, recipient, amount),
+        ExecuteMsg::Transfer {recipient, amount} => try_execute_transfer(deps, _env, info, recipient, amount),
     }
 }
 
-pub fn execute_verify_and_transfer(
+pub fn try_execute_transfer(
     deps: DepsMut<'_>,
     _env: Env,
     info: MessageInfo,
     recipient: String,
-    amount: Uint128
+    amount: Uint128,
+    message: DeliverableMessage,
+    block_height: u64,
+    proof: MerkleProof,
 ) -> Result<Response, ContractError> {
-    if (/* Light Client에서 Verify 문제 없을 때 */) {
+    let light_client_msg = VerifyMsg {
+        message: message,
+        block_height: block_height,
+        proof: proof,
+    };
+    
+    let processed_msg = light_client_msg.clone().into.cosmos_msg(/* CA */)?;
+    /* Light Client에서 Verify 문제 없을 때 */
+    if (processed_msg.response == Response.OK) {
         execute_transfer(deps, _env, info, recipient, amount);
     } else {
         Err(ContractError::VerifyFail {})
     }
-
-
-    // let _result = STATE.update(deps.storage, |state| -> Result<_, ContractError> {
-    //     if state
-    //         .light_client
-    //         .verify_commitment(message, block_height, proof)
-    //     {
-    //         Ok(state)
-    //     } else {
-    //         Err(ContractError::VerifyFail {})
-    //     }
-    // })?;
-
-    Ok(Response::new().add_attribute("method", "execute_verify_and_transfer"))
+    Ok(Response::new().add_attribute("method", "execute_verify_and_transfer"))    
 }
-
-
-
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
