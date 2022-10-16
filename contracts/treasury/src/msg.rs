@@ -8,7 +8,9 @@ pub enum ExecuteMsg {
     Transfer {
         recipient: String,
         amout: Uint128,
+        denom: String,
     },
+
     Verify (VerifyMsg),
 }
 
@@ -16,7 +18,12 @@ pub enum ExecuteMsg {
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
     GetBalance {
-        token_address: String,
+        address: String,
+        denom: String,
+    },
+
+    GetAllBalance {
+        address: String,
     },
 }
 

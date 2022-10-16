@@ -1,10 +1,11 @@
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
+use cosmwasm_sts::{CosmosMsg, coins, BankMsg, WasmMsg, Uint128, BankQuery}
 use cosmwasm_std::{to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
 use cw2::set_contract_version;
 use crate::error::ContractError;
 use crate::msg::{ExecuteMsg, QueryMsg, VerifyMsg};
-use cw20_base::contract::{execute_transfer, query_balance};
+// use cw20_base::contract::{execute_transfer, query_balance};
 
 const CONTRACT_NAME: &str = "crates.io:treasury";
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -28,8 +29,32 @@ pub fn execute(
     msg: ExecuteMsg,
 ) -> Result<Response, ContractError> {
     match msg {
-        ExecuteMsg::Transfer {recipient, amount} => try_execute_transfer(deps, _env, info, recipient, amount),
+        // ExecuteMsg::TryTransfer {recipient, amount} => 
+        ExecuteMsg::Transfer {recipient, amount, denom} => execute_transfer(deps, _env, info, recipient, amount, denom),
     }
+}
+
+fn execute_transfer(deps, _env, info, recipient, amount, denom) {
+    if amount == Uint128::zero() {
+        return Err(ContractError::InvalidZeroAmount {});
+    }
+
+    let mut msgs: Vec<CosmosMsg> = vec![];
+
+    let amount_int: u128 = amount.parse().unwrap();
+    msgs.push(CosmosMsg::Bank(BankMsg::Send{
+        to_address: recipient,
+        amount: coins(
+            amount_int, 
+            denom,
+        ),
+    }));
+
+    Ok(
+        Response::new()
+        .add_attribute("method", "send_coin_from_to")
+        .add_messages(msgs)
+    )
 }
 
 pub fn try_execute_transfer(
@@ -59,8 +84,32 @@ pub fn try_execute_transfer(
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
+pub fn query(
+    deps: Deps,
+    _env: Env,
+    msg: QueryMsg
+) -> StdResult<Binary> {
     match msg {
-        QueryMsg::GetBalance {token_address} => to_binary(&query_balance(deps, token_address)?),
+        QueryMsg::GetBalance {address, denom} => to_binary(&query_balance(deps, address, denom)?),
+        QueryMsg::GetAllBalance {address} => to_binary(&queryall_balance(address)?),
     }
+}
+
+fn query_balance(
+    deps:Deps,
+    address: String, 
+    denom: String,
+) -> StdResult<Coin> {
+
+    let querier = deps.querier.query_balance(address, denom)?;
+    Ok(querier)
+}
+
+fn query_all_balance(
+    deps:Deps,
+    address: String,
+) -> StdResult<Coin> {
+
+    let querier = deps.querier.query_all_balance(address)?;
+    Ok(querier)
 }
