@@ -9,6 +9,7 @@ use crate::msg::{ExecuteMsg, QueryMsg, VerifyMsg};
 
 const CONTRACT_NAME: &str = "crates.io:treasury";
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
+const LIGHT_CLIENT_CONTRACT_ADDRESS = "emtpy"
 
 #[cfg_attr(not(feature="library"), entry_point)]
 pub fn instantiate(
@@ -29,9 +30,59 @@ pub fn execute(
     msg: ExecuteMsg,
 ) -> Result<Response, ContractError> {
     match msg {
-        // ExecuteMsg::TryTransfer {recipient, amount} => 
-        ExecuteMsg::Transfer {recipient, amount, denom} => execute_transfer(deps, _env, info, recipient, amount, denom),
+        ExecuteMsg::Transfer {recipient, amount, denom, message, block_height, proof} => execute_varified_transfer(deps, _env, info, recipient, amount, denom, message, block_height, proof),
+        // ExecuteMsg::Transfer {recipient, amount, denom} => execute_transfer(deps, _env, info, recipient, amount, denom),
     }
+}
+
+fn execute_varified_transfer(
+    deps: DepsMut<'_>,
+    _env: Env,
+    info: MessageInfo,
+    recipient: String,
+    amount: Uint128,
+    denom: String,
+    message: DeliverableMessage,
+    block_height: u64,
+    proof: MerkleProof,
+) -> Result<Response, ContractError> {
+
+    if amount == Uint128::zero() {
+        return Err(ContractError::InvalidZeroAmount {});
+    }
+
+    let mut msgs: Vec<CosmosMsg> = vec![];
+
+    // TO DO (Begin)
+    let query_msg: CollectablesQueryMsg =
+        CollectablesQueryMsg::CollectionByName(CollectionByNameMsg {
+            collection_name: name,
+    });
+    let query_response: CollectionIdResponse = deps.querier.query(
+        &QueryRequest::Wasm(WasmQuery::Smart { 
+            contract_addr: LIGHT_CLIENT_CONTRACT_ADDRESS,
+            message: to_binary(&query_msg)?,
+    }))?;
+    // TO DO (End)
+
+    if (query_response.is_valid?) {
+        let amount_int: u128 = amount.parse().unwrap();
+        msgs.push(CosmosMsg::Bank(BankMsg::Send{
+            to_address: recipient,
+            amount: coins(
+                amount_int, 
+                denom,
+            ),
+        }));
+    } else {
+        Err(ContractError::VerifyFail {})
+    }
+
+    Ok(
+        Response::new()
+        .add_attribute("method", "execute_verified_transfer")
+        .add_messages(msgs)
+    )    
 }
 
 fn execute_transfer(deps, _env, info, recipient, amount, denom) {
@@ -55,32 +106,6 @@ fn execute_transfer(deps, _env, info, recipient, amount, denom) {
         .add_attribute("method", "send_coin_from_to")
         .add_messages(msgs)
     )
-}
-
-pub fn try_execute_transfer(
-    deps: DepsMut<'_>,
-    _env: Env,
-    info: MessageInfo,
-    recipient: String,
-    amount: Uint128,
-    message: DeliverableMessage,
-    block_height: u64,
-    proof: MerkleProof,
-) -> Result<Response, ContractError> {
-    let light_client_msg = VerifyMsg {
-        message: message,
-        block_height: block_height,
-        proof: proof,
-    };
-    
-    let processed_msg = light_client_msg.clone().into.cosmos_msg(/* CA */)?;
-    /* Light Client에서 Verify 문제 없을 때 */
-    if (processed_msg.response == Response.OK) {
-        execute_transfer(deps, _env, info, recipient, amount);
-    } else {
-        Err(ContractError::VerifyFail {})
-    }
-    Ok(Response::new().add_attribute("method", "execute_verify_and_transfer"))    
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
