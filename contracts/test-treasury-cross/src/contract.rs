@@ -116,7 +116,7 @@ pub fn query(
 ) -> StdResult<Binary> {
     match msg {
         QueryMsg::GetBalance {address, denom} => to_binary(&query_balance(deps, address, denom)?),
-        QueryMsg::GetAllBalance {address} => to_binary(&queryall_balance(address)?),
+        QueryMsg::GetAllBalance {address} => to_binary(&query_all_balance(address)?),
     }
 }
 
