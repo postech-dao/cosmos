@@ -13,21 +13,45 @@ pub struct InstantiateMsg {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum ExecuteMsg {
-    Update {
+    LightClientUpdate {
         header: Header,
         proof: BlockFinalizationProof,
     },
+    Transfer {
+        recipient: String,
+        amount: Uint128,
+        denom: String,
+        message: DeliverableMessage,
+        block_height: u64,
+        proof: String,
+    }
+    /*
     Verify {
         message: DeliverableMessage,
         block_height: u64,
         proof: MerkleProof,
     },
+     */
+    
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
     GetHeader {},
+    Verify {
+        message: DeliverableMessage,
+        block_height: u64,
+        proof: String,
+    },
+    GetBalance {
+        address: String,
+        denom: String,
+    },
+
+    GetAllBalance {
+        address: String,
+    },
 }
 
 // We define a custom struct for each query response

@@ -12,6 +12,9 @@ pub enum ContractError {
     #[error("Update failed")]
     UpdateFail {},
 
+    #[error("Invalid Zero Amount")]
+    InvalidZeroAmount {},
+
     #[error("Custom Error val: {val:?}")]
     CustomError { val: String },
     // Add any other custom errors you like here.
