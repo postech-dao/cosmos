@@ -4,8 +4,7 @@ use cosmwasm_sts::{CosmosMsg, coins, BankMsg, WasmMsg, Uint128, BankQuery}
 use cosmwasm_std::{to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
 use cw2::set_contract_version;
 use crate::error::ContractError;
-use crate::msg::{ExecuteMsg, QueryMsg, VerifyQueryMsg, VerifyResponse};
-// use cw20_base::contract::{execute_transfer, query_balance};
+use crate::msg::{ExecuteMsg, QueryMsg, VerifyQueryMsg, VerifyResponse, BalanceResponse, BalanceAllResponse};
 
 const CONTRACT_NAME: &str = "crates.io:treasury";
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -31,7 +30,6 @@ pub fn execute(
 ) -> Result<Response, ContractError> {
     match msg {
         ExecuteMsg::Transfer {recipient, amount, denom, message, block_height, proof} => execute_varified_transfer(deps, _env, info, recipient, amount, denom, message, block_height, proof),
-        // ExecuteMsg::Transfer {recipient, amount, denom} => execute_transfer(deps, _env, info, recipient, amount, denom),
     }
 }
 
@@ -104,7 +102,7 @@ fn query_balance(
     denom: String,
 ) -> StdResult<Coin> {
 
-    let balanceResponse = deps.querier.query_balance(address, denom)?;
+    let balanceResponse: BalanceResponse = deps.querier.query_balance(address, denom)?;
     Ok(balanceResponse)
 }
 
@@ -113,6 +111,6 @@ fn query_all_balance(
     address: String,
 ) -> StdResult<Coin> {
 
-    let balanceResponse = deps.querier.query_all_balance(address)?;
+    let balanceResponse: BalanceAllResponse = deps.querier.query_all_balance(address)?;
     Ok(balanceResponse)
 }
