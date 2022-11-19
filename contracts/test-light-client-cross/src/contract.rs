@@ -5,7 +5,7 @@ use cw2::set_contract_version;
 use pdao_beacon_chain_common::message::DeliverableMessage;
 
 use crate::error::ContractError;
-use crate::msg::{ExecuteMsg, GetHeaderResponse, InstantiateMsg, QueryMsg};
+use crate::msg::{ExecuteMsg, GetHeaderResponse, CheckVerifyResponse, InstantiateMsg, QueryMsg};
 use crate::state::{State, STATE};
 use pdao_colony_contract_common::LightClient;
 
@@ -91,6 +91,11 @@ pub fn execute_verify(
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::GetHeader {} => to_binary(&query_header(deps)?),
+        QueryMsg::CheckVerify {
+            message,
+            block_height,
+            proof,
+        } => to_binary(&query_verify(deps, _env, info, message, block_height, proof)?), 
     }
 }
 
@@ -98,5 +103,24 @@ fn query_header(deps: Deps) -> StdResult<GetHeaderResponse> {
     let state = STATE.load(deps.storage)?;
     Ok(GetHeaderResponse {
         header: state.light_client.last_header,
+    })
+}
+
+fn query_verify(deps: DepsMut,
+    _env: Env,
+    _info: MessageInfo,
+    message: DeliverableMessage,
+    block_height: u64,
+    proof: String,
+) -> Result<Response, ContractError> {
+    let state = STATE.load(deps.storage)?;
+
+    let is_verified: bool = false;
+    if state.light_client.verify_commitment(message, block_height, proof) {
+        is_verified = true;
+    }
+
+    OK(CheckVerifyResponse {
+        is_verified: is_verified,
     })
 }
