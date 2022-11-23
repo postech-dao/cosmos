@@ -210,11 +210,9 @@ mod test {
         let denom = String::from("gold");
 
         let res = query(deps.as_ref(), mock_env(), QueryMsg::GetBalance {denom}).unwrap();
-        // let value: BalanceResponse = from_binary(&res).unwrap();
-        
-        // println!("{}", value.amount);
-
-        // assert_eq!(123456, value.amount, "we are testing addition with {} and {}", 123456, value.amount);
+        let value: Coin = from_binary(&res).unwrap();
+    
+        assert_eq!(123456, value.amount.u128());
     }
 }
 
