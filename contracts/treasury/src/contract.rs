@@ -74,7 +74,7 @@ fn execute_transfer(
     proof: String,
 ) {
     if amount == Uint128::zero() {
-        return Err(ContractError::InvalidZeroAmount {})
+        Err(ContractError::InvalidZeroAmount {})
     }
 
     let mut msgs: Vec<CosmosMsg> = vec![];

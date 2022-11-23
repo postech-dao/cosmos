@@ -24,6 +24,7 @@ pub enum ExecuteMsg {
         denom: String,
         message: DeliverableMessage,
         block_height: u64,
+        header: Header,
         proof: String,
     }
 }
