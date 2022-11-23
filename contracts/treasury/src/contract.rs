@@ -197,7 +197,7 @@ mod test {
     // }
 
     #[test]
-    fn query_test(){
+    fn query_balance_test(){
         let mut deps = mock_dependencies_with_balance(&coins(123456, "gold"));
         let chain_name = String::from("chain name");
         let header = String::from("abc");
@@ -211,6 +211,7 @@ mod test {
 
         let res = query(deps.as_ref(), mock_env(), QueryMsg::GetBalance {denom}).unwrap();
         let value: BalanceResponse = from_binary(&res).unwrap();
+        println!(value.amount)
         assert_eq!(123456, value.amount)
     }
 }
