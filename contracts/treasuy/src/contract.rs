@@ -73,14 +73,6 @@ fn execute_transfer(
     header: String,
     proof: String,
 ) {
-    let _result = STATE.update(deps.storage, |mut state| -> Result<_, ContractError> {
-        if state.light_client.update(header, proof) {
-            Ok(state)
-        } else {
-            Err(ContractError::UpdateFail{})
-        }
-    })?;
-
     if amount == Uint128::zero() {
         return Err(ContractError::InvalidZeroAmount {});
     }
@@ -88,26 +80,69 @@ fn execute_transfer(
     let mut msgs: Vec<CosmosMsg> = vec![];
 
     let amount_int: u128 = amount.parse().unwrap();
-    let success_response: bool = query_verify(deps, _env, info, message, block_height, proof)?;
-    if success_response.verify_success {
-        msgs.push(CosmosMsg::Bank(BankMsg::Send{
-            to_address: recipient,
-            amount: coins(
-                amount_int, 
-                denom,
-            ),
-        }));
-    
-        Ok(
-            Response::new()
-            .add_attribute("method", "send_coin_from_to")
-            .add_messages(msgs)
-        )
-    } else {
-        return Err(ContractError::VerifyFail{});
-    }
-    
+
+    let _result = STATE.update(deps.storage, |state| -> Result<_, ContractError> {
+        if state
+            .light_client
+            .verify_commitment(message, block_height, proof)
+        {
+            msgs.push(CosmosMsg::Bank(BankMsg::Send{
+                to_address: recipient,
+                amount: coins(
+                    amount_int, 
+                    denom,
+                ),
+            }));
+        
+            Ok(
+                Response::new()
+                .add_attribute("method", "execute_transfer")
+                .add_messages(msgs)
+            )
+        } else {
+            Err(ContractError::VerifyFail {})
+        }
+    })?;
 }
+
+// fn execute_transfer_(
+//     deps: DepsMut<'_>,
+//     _env: Env,
+//     info: MessageInfo,
+//     recipient: String,
+//     amount: Uint128,
+//     denom: String,
+//     message: DeliverableMessage,
+//     block_height: u64,
+//     header: String,
+//     proof: String,
+// ) {
+//     if amount == Uint128::zero() {
+//         return Err(ContractError::InvalidZeroAmount {});
+//     }
+
+//     let mut msgs: Vec<CosmosMsg> = vec![];
+
+//     let amount_int: u128 = amount.parse().unwrap();
+//     let success_response: bool = query_verify(deps, _env, info, message, block_height, proof)?;
+//     if success_response.verify_success {
+//         msgs.push(CosmosMsg::Bank(BankMsg::Send{
+//             to_address: recipient,
+//             amount: coins(
+//                 amount_int, 
+//                 denom,
+//             ),
+//         }));
+    
+//         Ok(
+//             Response::new()
+//             .add_attribute("method", "send_coin_from_to")
+//             .add_messages(msgs)
+//         )
+//     } else {
+//         return Err(ContractError::VerifyFail{});
+//     }
+// }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {

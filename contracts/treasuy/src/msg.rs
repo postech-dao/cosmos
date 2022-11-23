@@ -25,14 +25,6 @@ pub enum ExecuteMsg {
         block_height: u64,
         proof: String,
     }
-    /*
-    Verify {
-        message: DeliverableMessage,
-        block_height: u64,
-        proof: MerkleProof,
-    },
-     */
-    
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
