@@ -204,7 +204,9 @@ mod test {
         let msg = InstantiateMsg{header, chain_name};
         let _res = instantiate(deps.as_mut(), env, info, msg);
 
-        let msg = QueryMsg::GetBalance {"gold"};
+        let denom = String::from("gold");
+
+        let msg = QueryMsg::GetBalance {denom};
 
         assert_eq!()
     }
