@@ -79,7 +79,7 @@ fn execute_transfer(
 
     let mut msgs: Vec<CosmosMsg> = vec![];
 
-    let amount_int: u128 = amount.parse().unwrap();
+    let amount_int: u128 = amount.u128()
 
     let _result = STATE.update(deps.storage, |state| -> Result<_, ContractError> {
         if state
@@ -148,11 +148,6 @@ fn execute_transfer(
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::GetHeader {} => to_binary(&query_header(deps)?),
-        // QueryMsg::Verify {
-        //     message,
-        //     block_height,
-        //     proof,
-        // } => to_binary(&query_verify(deps, _env, info, message, block_height, proof)?),
         QueryMsg::GetBalance {address, denom} => to_binary(&query_balance(deps, address, denom)?),
         QueryMsg::GetAllBalance {address} => to_binary(&query_all_balances(deps, address)?),
     }
