@@ -1,6 +1,6 @@
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
-use cosmwasm_std::{to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult, CosmosMsg, BankMsg, Uint128, Coin, coins};
+use cosmwasm_std::{to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult, CosmosMsg, BankMsg, Uint128, Coin, coins, coin};
 use cw2::set_contract_version;
 use pdao_beacon_chain_common::message::DeliverableMessage;
 
@@ -174,7 +174,7 @@ fn query_header(deps: Deps) -> StdResult<GetHeaderResponse> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use cosmwasm_std::testing::{mock_dependencies, mock_dependencies_with_balance, mock_env, mock_info};
+    use cosmwasm_std::testing::{mock_dependencies, mock_dependencies_with_balance, mock_dependencies_with_balances, mock_env, mock_info};
     use cosmwasm_std::{coins, from_binary, Addr};
 
     // fn get_auth_vec() -> Vec<Addr> {
@@ -187,7 +187,7 @@ mod test {
 
     #[test]
     fn query_balance_test(){
-        let mut deps = mock_dependencies_with_balance(&coins(123456, "gold"));
+        let mut deps = mock_dependencies_with_balance(&vec![coin(123, "gold"), coin(456, "silver"), coin(789, "bronze")]);
         let chain_name = String::from("chain name");
         let header = String::from("abc");
         let env = mock_env();
@@ -197,30 +197,43 @@ mod test {
         let _res = instantiate(deps.as_mut(), env, info, msg);
 
         let denom = String::from("gold");
-
         let res = query(deps.as_ref(), mock_env(), QueryMsg::GetBalance {denom}).unwrap();
         let value: Coin = from_binary(&res).unwrap();
-    
-        assert_eq!(123456, value.amount.u128());
+        assert_eq!(123, value.amount.u128());
+
+        let denom = String::from("silver");
+        let res = query(deps.as_ref(), mock_env(), QueryMsg::GetBalance {denom}).unwrap();
+        let value: Coin = from_binary(&res).unwrap();
+        assert_eq!(456, value.amount.u128());
+
+        let denom = String::from("bronze");
+        let res = query(deps.as_ref(), mock_env(), QueryMsg::GetBalance {denom}).unwrap();
+        let value: Coin = from_binary(&res).unwrap();
+        assert_eq!(789, value.amount.u128());
     }
 
     #[test]
     fn query_all_balances_test(){
-        let mut deps = mock_dependencies_with_balance(&coins(123456, "gold"));
+        let mut deps = mock_dependencies_with_balance(&vec![coin(123, "gold"), coin(456, "silver"), coin(789, "bronze")]);
         let chain_name = String::from("chain name");
         let header = String::from("abc");
         let env = mock_env();
-
+        
         let info = mock_info("sender", &coins(2,"token"));
         let msg = InstantiateMsg{header, chain_name};
         let _res = instantiate(deps.as_mut(), env, info, msg);
 
-        let denom = String::from("gold");
-
         let res = query(deps.as_ref(), mock_env(), QueryMsg::GetAllBalances {}).unwrap();
         let value: Vec<Coin> = from_binary(&res).unwrap();
     
-        assert_eq!(123456, value[0].amount.u128());
+        assert_eq!(coin(123, "gold"), value[0]);
+        assert_eq!(123, value[0].amount.u128());
+
+        assert_eq!(coin(456, "silver"), value[1]);
+        assert_eq!(456, value[1].amount.u128());
+
+        assert_eq!(coin(789, "bronze"), value[2]);
+        assert_eq!(789, value[2].amount.u128());
     }
 }
 
