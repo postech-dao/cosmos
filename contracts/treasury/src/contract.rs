@@ -39,7 +39,7 @@ pub fn execute(
 ) -> Result<Response, ContractError> {
     match msg {
         ExecuteMsg::LightClientUpdate { header, proof } => execute_light_client_update(deps, _env, info, header, proof),
-        ExecuteMsg::Transfer {recipient, amount, denom, message, block_height, proof} => execute_transfer(deps, _env, info, recipient, amount, denom, message, block_height, header, proof),
+        ExecuteMsg::Transfer {recipient, amount, denom, message, block_height, header, proof} => execute_transfer(deps, _env, info, recipient, amount, denom, message, block_height, header, proof),
     }
 }
 
@@ -79,7 +79,7 @@ fn execute_transfer(
 
     let mut msgs: Vec<CosmosMsg> = vec![];
 
-    let amount_int: u128 = amount.u128()
+    let amount_int: u128 = amount.u128();
 
     let _result = STATE.update(deps.storage, |state| -> Result<_, ContractError> {
         if state
@@ -148,9 +148,9 @@ fn execute_transfer(
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::GetHeader {} => to_binary(&query_header(deps)?),
-        QueryMsg::GetBalance {denom} => to_binary(&deps.querier.query_balance(env.contract.address, denom)?),
+        QueryMsg::GetBalance {denom} => to_binary(&deps.querier.query_balance(_env.contract.address, denom)?),
         // QueryMsg::GetBalance {denom} => to_binary(&query_balance(deps, _env, denom)?),
-        QueryMsg::GetAllBalance {} => to_binary(&deps.querier.query_all_balances(env.contract.address)?),
+        QueryMsg::GetAllBalance {} => to_binary(&deps.querier.query_all_balances(_env.contract.address)?),
         // QueryMsg::GetAllBalance {} => to_binary(&query_all_balance(deps, _env)?),
     }
 }
@@ -184,7 +184,7 @@ fn query_header(deps: Deps) -> StdResult<GetHeaderResponse> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
+    use cosmwasm_std::testing::{mock_dependencies, mock_dependencies_with_balance, mock_env, mock_info};
     use cosmwasm_std::{coins, from_binary, Addr};
 
     // fn get_auth_vec() -> Vec<Addr> {
@@ -210,7 +210,7 @@ mod test {
 
         let msg = QueryMsg::GetBalance {denom};
 
-        assert_eq!()
+        // assert_eq!()
     }
 }
 
