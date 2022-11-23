@@ -47,3 +47,9 @@ pub enum QueryMsg {
 pub struct GetHeaderResponse {
     pub header: Header,
 }
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub struct BalanceResponse {
+    pub amount: u64,
+}
