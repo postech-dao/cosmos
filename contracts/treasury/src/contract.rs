@@ -5,7 +5,7 @@ use cw2::set_contract_version;
 use pdao_beacon_chain_common::message::DeliverableMessage;
 
 use crate::error::ContractError;
-use crate::msg::{ExecuteMsg, GetHeaderResponse, BalanceResponse InstantiateMsg, QueryMsg};
+use crate::msg::{ExecuteMsg, GetHeaderResponse, BalanceResponse, InstantiateMsg, QueryMsg};
 use crate::state::{State, STATE};
 use pdao_colony_contract_common::LightClient;
 
