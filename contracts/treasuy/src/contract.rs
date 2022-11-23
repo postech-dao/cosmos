@@ -74,7 +74,7 @@ fn execute_transfer(
     proof: String,
 ) {
     if amount == Uint128::zero() {
-        return Err(ContractError::InvalidZeroAmount {});
+        return Err(ContractError::InvalidZeroAmount {})
     }
 
     let mut msgs: Vec<CosmosMsg> = vec![];
@@ -149,7 +149,7 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::GetHeader {} => to_binary(&query_header(deps)?),
         QueryMsg::GetBalance {address, denom} => to_binary(&query_balance(deps, address, denom)?),
-        QueryMsg::GetAllBalance {address} => to_binary(&query_all_balances(deps, address)?),
+        QueryMsg::GetAllBalance {address} => to_binary(&query_all_balance(deps, address)?),
     }
 }
 
@@ -175,7 +175,7 @@ fn query_all_balance(
     address: String,
 ) -> StdResult<Coin> {
 
-    let querier = deps.querier.query_all_balance(address)?;
+    let querier = deps.querier.query_all_balances(address)?;
     Ok(querier)
 }
 
@@ -197,7 +197,26 @@ mod test {
     }
 }
 
+#[test]
+fn query_test(){
+    let mut deps = mock_dependencies_with_balance(&coins(123456, "gold"));
+    let chain_name = String::from("chain name");
+    let header = String::from("abc");
+    let env = mock_env();
+
+    let info = mock_info("sender", &coins(2,"token"));
+    let msg = InstantiateMsg{header, chain_name};
+    let _res = instantiate(deps.as_mut(), env, info, msg);
+
+    let msg = QueryMsg::GetAllBalance { env.contract.address };
+
+
+    assert_eq!()
+
+}
+
 //     #[test]
+
 //     fn proper_initialization() {
 //         let mut deps = mock_dependencies();
 //         let chain_name = "chain name";
