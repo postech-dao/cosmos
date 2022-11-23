@@ -37,7 +37,7 @@ pub enum QueryMsg {
         denom: String,
     },
 
-    GetAllBalance {
+    GetAllBalances {
     },
 }
 
@@ -46,10 +46,4 @@ pub enum QueryMsg {
 #[serde(rename_all = "snake_case")]
 pub struct GetHeaderResponse {
     pub header: Header,
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-#[serde(rename_all = "snake_case")]
-pub struct BalanceResponse {
-    pub amount: u64,
 }

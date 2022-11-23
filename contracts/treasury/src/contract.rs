@@ -150,9 +150,8 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::GetHeader {} => to_binary(&query_header(deps)?),
         QueryMsg::GetBalance {denom} => to_binary(&deps.querier.query_balance(_env.contract.address, denom)?),
-        // QueryMsg::GetBalance {denom} => to_binary(&query_balance(deps, _env, denom)?),
-        QueryMsg::GetAllBalance {} => to_binary(&deps.querier.query_all_balances(_env.contract.address)?),
-        // QueryMsg::GetAllBalance {} => to_binary(&query_all_balance(deps, _env)?),
+        QueryMsg::GetAllBalances {} => to_binary(&deps.querier.query_all_balances(_env.contract.address)?),
+        // QueryMsg::GetAllBalances {} => to_binary(&query_all_balance(deps, _env)?),
     }
 }
 
@@ -162,16 +161,6 @@ fn query_header(deps: Deps) -> StdResult<GetHeaderResponse> {
         header: state.light_client.last_header,
     })
 }
-
-// fn query_balance(
-//     deps:Deps,
-//     env: Env,
-//     denom: String,
-// ) -> StdResult<Coin> {
-
-//     let querier = deps.querier.query_balance(env.contract.address, denom)?;
-//     Ok(querier)
-// }
 
 // fn query_all_balance(
 //     deps:Deps,
@@ -213,6 +202,25 @@ mod test {
         let value: Coin = from_binary(&res).unwrap();
     
         assert_eq!(123456, value.amount.u128());
+    }
+
+    #[test]
+    fn query_all_balances_test(){
+        let mut deps = mock_dependencies_with_balance(&coins(123456, "gold"));
+        let chain_name = String::from("chain name");
+        let header = String::from("abc");
+        let env = mock_env();
+
+        let info = mock_info("sender", &coins(2,"token"));
+        let msg = InstantiateMsg{header, chain_name};
+        let _res = instantiate(deps.as_mut(), env, info, msg);
+
+        let denom = String::from("gold");
+
+        let res = query(deps.as_ref(), mock_env(), QueryMsg::GetAllBalances {denom}).unwrap();
+        let value: Vec<Coin> = from_binary(&res).unwrap();
+    
+        assert_eq!(123456, value[0].amount.u128());
     }
 }
 
