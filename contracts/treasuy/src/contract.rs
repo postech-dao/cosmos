@@ -192,22 +192,22 @@ mod test {
         auth.push(addr1); // Now it knows: it's Vec<String>
         auth.push(addr2);
     }
-}
 
-#[test]
-fn query_test(){
-    let mut deps = mock_dependencies_with_balance(&coins(123456, "gold"));
-    let chain_name = String::from("chain name");
-    let header = String::from("abc");
-    let env = mock_env();
+    #[test]
+    fn query_test(){
+        let mut deps = mock_dependencies_with_balance(&coins(123456, "gold"));
+        let chain_name = String::from("chain name");
+        let header = String::from("abc");
+        let env = mock_env();
 
-    let info = mock_info("sender", &coins(2,"token"));
-    let msg = InstantiateMsg{header, chain_name};
-    let _res = instantiate(deps.as_mut(), env, info, msg);
+        let info = mock_info("sender", &coins(2,"token"));
+        let msg = InstantiateMsg{header, chain_name};
+        let _res = instantiate(deps.as_mut(), env, info, msg);
 
-    let msg = QueryMsg::GetAllBalance { };
+        let msg = QueryMsg::GetBalance {"gold"};
 
-    assert_eq!()
+        assert_eq!()
+    }
 }
 
 //     #[test]
