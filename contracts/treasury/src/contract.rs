@@ -214,7 +214,7 @@ mod test {
         
         println!("{}", value.amount);
 
-        assert_eq!(123456, value.amount);
+        assert_eq!(123456, value.amount, "we are testing addition with {} and {}", 123456, value.amount);
     }
 }
 
