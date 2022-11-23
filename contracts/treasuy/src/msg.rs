@@ -39,11 +39,6 @@ pub enum ExecuteMsg {
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
     GetHeader {},
-    Verify {
-        message: DeliverableMessage,
-        block_height: u64,
-        proof: String,
-    },
     GetBalance {
         address: String,
         denom: String,

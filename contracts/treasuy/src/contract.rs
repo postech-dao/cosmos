@@ -1,6 +1,6 @@
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
-use cosmwasm_std::{to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult, CosmosMsg, BankMsg};
+use cosmwasm_std::{to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult, CosmosMsg, BankMsg, Uint128};
 use cw2::set_contract_version;
 use pdao_beacon_chain_common::message::DeliverableMessage;
 
@@ -70,13 +70,14 @@ fn execute_transfer(
     denom: String,
     message: DeliverableMessage,
     block_height: u64,
+    header: String,
     proof: String,
 ) {
     let _result = STATE.update(deps.storage, |mut state| -> Result<_, ContractError> {
         if state.light_client.update(header, proof) {
             Ok(state)
         } else {
-            Err(ContractError::UpdateFail {})
+            Err(ContractError::UpdateFail{})
         }
     })?;
 
@@ -103,7 +104,7 @@ fn execute_transfer(
             .add_messages(msgs)
         )
     } else {
-        return Err(ContractError::VerifyFail {});
+        return Err(ContractError::VerifyFail{});
     }
     
 }
@@ -127,22 +128,6 @@ fn query_header(deps: Deps) -> StdResult<GetHeaderResponse> {
     Ok(GetHeaderResponse {
         header: state.light_client.last_header,
     })
-}
-
-fn query_verify(
-    deps: DepsMut,
-    _env: Env,
-    _info: MessageInfo,
-    message: DeliverableMessage,
-    block_height: u64,
-    proof: String,
-) -> StdResult<bool> {
-    let state = STATE.load(deps.storage)?;
-    if state.light_client.verify_commitment(message, block_height, proof){
-        Ok(true)
-    } else {
-        return Err(ContractError::Verify Fail {});
-    }
 }
 
 fn query_balance(
