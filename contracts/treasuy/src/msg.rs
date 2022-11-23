@@ -33,7 +33,6 @@ pub enum ExecuteMsg {
 pub enum QueryMsg {
     GetHeader {},
     GetBalance {
-        address: String,
         denom: String,
     },
 

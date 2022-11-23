@@ -148,7 +148,7 @@ fn execute_transfer(
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::GetHeader {} => to_binary(&query_header(deps)?),
-        QueryMsg::GetBalance {address, denom} => to_binary(&query_balance(deps, address, denom)?),
+        QueryMsg::GetBalance {denom} => to_binary(&query_balance(deps, _env, denom)?),
         QueryMsg::GetAllBalance {} => to_binary(&query_all_balance(deps, _env)?),
     }
 }
@@ -162,11 +162,11 @@ fn query_header(deps: Deps) -> StdResult<GetHeaderResponse> {
 
 fn query_balance(
     deps:Deps,
-    address: String, 
+    env: Env,
     denom: String,
 ) -> StdResult<Coin> {
 
-    let querier = deps.querier.query_balance(address, denom)?;
+    let querier = deps.querier.query_balance(env.contract.address, denom)?;
     Ok(querier)
 }
 
@@ -207,9 +207,7 @@ fn query_test(){
 
     let msg = QueryMsg::GetAllBalance { };
 
-
     assert_eq!()
-
 }
 
 //     #[test]
