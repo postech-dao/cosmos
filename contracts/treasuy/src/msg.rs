@@ -38,7 +38,6 @@ pub enum QueryMsg {
     },
 
     GetAllBalance {
-        env: Env,
     },
 }
 

@@ -174,7 +174,6 @@ fn query_all_balance(
     deps:Deps,
     env: Env,
 ) -> StdResult<Coin> {
-
     
     let querier = deps.querier.query_all_balances(env.contract.address)?;
     Ok(querier)
@@ -206,7 +205,7 @@ fn query_test(){
     let msg = InstantiateMsg{header, chain_name};
     let _res = instantiate(deps.as_mut(), env, info, msg);
 
-    let msg = QueryMsg::GetAllBalance { env };
+    let msg = QueryMsg::GetAllBalance { };
 
 
     assert_eq!()
