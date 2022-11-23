@@ -5,7 +5,7 @@ use cw2::set_contract_version;
 use pdao_beacon_chain_common::message::DeliverableMessage;
 
 use crate::error::ContractError;
-use crate::msg::{ExecuteMsg, GetHeaderResponse, BalanceResponse, InstantiateMsg, QueryMsg};
+use crate::msg::{ExecuteMsg, GetHeaderResponse, InstantiateMsg, QueryMsg};
 use crate::state::{State, STATE};
 use pdao_colony_contract_common::LightClient;
 
@@ -217,7 +217,7 @@ mod test {
 
         let denom = String::from("gold");
 
-        let res = query(deps.as_ref(), mock_env(), QueryMsg::GetAllBalances {denom}).unwrap();
+        let res = query(deps.as_ref(), mock_env(), QueryMsg::GetAllBalances {}).unwrap();
         let value: Vec<Coin> = from_binary(&res).unwrap();
     
         assert_eq!(123456, value[0].amount.u128());
