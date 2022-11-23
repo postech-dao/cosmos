@@ -39,7 +39,7 @@ pub fn execute(
 ) -> Result<Response, ContractError> {
     match msg {
         ExecuteMsg::LightClientUpdate { header, proof } => execute_light_client_update(deps, _env, info, header, proof),
-        ExecuteMsg::Transfer {recipient, amount, denom, message, block_height, proof} => execute_transfer(deps, _env, info, recipient, amount, denom, message, block_height, proof),
+        ExecuteMsg::Transfer {recipient, amount, denom, message, block_height, proof} => execute_transfer(deps, _env, info, recipient, amount, denom, message, block_height, header, proof),
     }
 }
 
@@ -154,7 +154,7 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
         //     proof,
         // } => to_binary(&query_verify(deps, _env, info, message, block_height, proof)?),
         QueryMsg::GetBalance {address, denom} => to_binary(&query_balance(deps, address, denom)?),
-        QueryMsg::GetAllBalance {address} => to_binary(&query_all_balance(address)?),
+        QueryMsg::GetAllBalance {address} => to_binary(&query_all_balances(deps, address)?),
     }
 }
 
@@ -187,19 +187,20 @@ fn query_all_balance(
 
 
 
-// #[cfg(test)]
-// mod test {
-//     use super::*;
-//     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
-//     use cosmwasm_std::{coins, from_binary, Addr};
+#[cfg(test)]
+mod test {
+    use super::*;
+    use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
+    use cosmwasm_std::{coins, from_binary, Addr};
 
-//     fn get_auth_vec() -> Vec<Addr> {
-//         let mut auth = Vec::new();
-//         let addr1 = Addr::unchecked("Windy");
-//         let addr2 = Addr::unchecked("Gomesy");
-//         auth.push(addr1); // Now it knows: it's Vec<String>
-//         auth.push(addr2);
-//     }
+    fn get_auth_vec() -> Vec<Addr> {
+        let mut auth = Vec::new();
+        let addr1 = Addr::unchecked("Windy");
+        let addr2 = Addr::unchecked("Gomesy");
+        auth.push(addr1); // Now it knows: it's Vec<String>
+        auth.push(addr2);
+    }
+}
 
 //     #[test]
 //     fn proper_initialization() {
