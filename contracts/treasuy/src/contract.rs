@@ -149,7 +149,7 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::GetHeader {} => to_binary(&query_header(deps)?),
         QueryMsg::GetBalance {address, denom} => to_binary(&query_balance(deps, address, denom)?),
-        QueryMsg::GetAllBalance {address} => to_binary(&query_all_balance(deps, address)?),
+        QueryMsg::GetAllBalance {} => to_binary(&query_all_balance(deps, _env)?),
     }
 }
 
@@ -172,15 +172,13 @@ fn query_balance(
 
 fn query_all_balance(
     deps:Deps,
-    address: String,
+    env: Env,
 ) -> StdResult<Coin> {
 
-    let querier = deps.querier.query_all_balances(address)?;
+    
+    let querier = deps.querier.query_all_balances(env.contract.address)?;
     Ok(querier)
 }
-
-
-
 
 #[cfg(test)]
 mod test {
@@ -208,7 +206,7 @@ fn query_test(){
     let msg = InstantiateMsg{header, chain_name};
     let _res = instantiate(deps.as_mut(), env, info, msg);
 
-    let msg = QueryMsg::GetAllBalance { env.contract.address };
+    let msg = QueryMsg::GetAllBalance { env };
 
 
     assert_eq!()
