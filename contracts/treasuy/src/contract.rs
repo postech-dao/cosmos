@@ -148,8 +148,10 @@ fn execute_transfer(
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::GetHeader {} => to_binary(&query_header(deps)?),
-        QueryMsg::GetBalance {denom} => to_binary(&query_balance(deps, _env, denom)?),
-        QueryMsg::GetAllBalance {} => to_binary(&query_all_balance(deps, _env)?),
+        QueryMsg::GetBalance {denom} => to_binary(&deps.querier.query_balance(env.contract.address, denom)?),
+        // QueryMsg::GetBalance {denom} => to_binary(&query_balance(deps, _env, denom)?),
+        QueryMsg::GetAllBalance {} => to_binary(&deps.querier.query_all_balances(env.contract.address)?),
+        // QueryMsg::GetAllBalance {} => to_binary(&query_all_balance(deps, _env)?),
     }
 }
 
@@ -160,24 +162,24 @@ fn query_header(deps: Deps) -> StdResult<GetHeaderResponse> {
     })
 }
 
-fn query_balance(
-    deps:Deps,
-    env: Env,
-    denom: String,
-) -> StdResult<Coin> {
+// fn query_balance(
+//     deps:Deps,
+//     env: Env,
+//     denom: String,
+// ) -> StdResult<Coin> {
 
-    let querier = deps.querier.query_balance(env.contract.address, denom)?;
-    Ok(querier)
-}
+//     let querier = deps.querier.query_balance(env.contract.address, denom)?;
+//     Ok(querier)
+// }
 
-fn query_all_balance(
-    deps:Deps,
-    env: Env,
-) -> StdResult<Coin> {
+// fn query_all_balance(
+//     deps:Deps,
+//     env: Env,
+// ) -> StdResult<Coin> {
     
-    let querier = deps.querier.query_all_balances(env.contract.address)?;
-    Ok(querier)
-}
+//     let querier = deps.querier.query_all_balances(env.contract.address)?;
+//     Ok(querier)
+// }
 
 #[cfg(test)]
 mod test {
@@ -185,13 +187,13 @@ mod test {
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
     use cosmwasm_std::{coins, from_binary, Addr};
 
-    fn get_auth_vec() -> Vec<Addr> {
-        let mut auth = Vec::new();
-        let addr1 = Addr::unchecked("Windy");
-        let addr2 = Addr::unchecked("Gomesy");
-        auth.push(addr1); // Now it knows: it's Vec<String>
-        auth.push(addr2);
-    }
+    // fn get_auth_vec() -> Vec<Addr> {
+    //     let mut auth = Vec::new();
+    //     let addr1 = Addr::unchecked("Windy");
+    //     let addr2 = Addr::unchecked("Gomesy");
+    //     auth.push(addr1); // Now it knows: it's Vec<String>
+    //     auth.push(addr2);
+    // }
 
     #[test]
     fn query_test(){
