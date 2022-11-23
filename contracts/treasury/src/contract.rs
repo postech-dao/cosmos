@@ -211,7 +211,7 @@ mod test {
 
         let res = query(deps.as_ref(), mock_env(), QueryMsg::GetBalance {denom}).unwrap();
         let value: BalanceResponse = from_binary(&res).unwrap();
-        println!(value.amount)
+        println!("{}", value.amount)
         assert_eq!(123456, value.amount)
     }
 }
