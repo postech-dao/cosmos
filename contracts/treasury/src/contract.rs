@@ -1,6 +1,6 @@
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
-use cosmwasm_std::{to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult, CosmosMsg, BankMsg, Uint128, Coin, coins, coin};
+use cosmwasm_std::{to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult, CosmosMsg, BankMsg, Uint128, coins};
 use cw2::set_contract_version;
 use pdao_beacon_chain_common::message::DeliverableMessage;
 
@@ -39,8 +39,7 @@ pub fn execute(
 ) -> Result<Response, ContractError> {
     match msg {
         ExecuteMsg::LightClientUpdate { header, proof } => execute_light_client_update(deps, _env, info, header, proof),
-        ExecuteMsg::Transfer {recipient, amount, denom, message, block_height, header, proof} => execute_light_client_update(deps, _env, info, header, proof),
-        // ExecuteMsg::Transfer {recipient, amount, denom, message, block_height, header, proof} => execute_transfer(deps, _env, info, recipient, amount, denom, message, block_height, header, proof),
+        ExecuteMsg::Transfer {recipient, amount, denom, message, block_height, proof} => execute_transfer(deps, _env, info, recipient, amount, denom, message, block_height, proof),
     }
 }
 
@@ -62,88 +61,48 @@ pub fn execute_light_client_update(
     Ok(Response::new().add_attribute("method", "execute_light_client_update"))
 }
 
-// fn execute_transfer(
-//     deps: DepsMut<'_>,
-//     _env: Env,
-//     info: MessageInfo,
-//     recipient: String,
-//     amount: Uint128,
-//     denom: String,
-//     message: DeliverableMessage,
-//     block_height: u64,
-//     header: String,
-//     proof: String,
-// ) {
-//     if amount == Uint128::zero() {
-//         Err(ContractError::InvalidZeroAmount {})
-//     }
+fn execute_transfer(
+    deps: DepsMut<'_>,
+    _env: Env,
+    _info: MessageInfo,
+    recipient: String,
+    amount: Uint128,
+    denom: String,
+    message: DeliverableMessage,
+    block_height: u64,
+    proof: String,
+)  -> Result<Response, ContractError> {
+    if amount == Uint128::zero() {
+        return Err(ContractError::InvalidZeroAmount {});
+    }
 
-//     let mut msgs: Vec<CosmosMsg> = vec![];
+    let mut msgs: Vec<CosmosMsg> = vec![];
+    let amount_int: u128 = amount.u128();
+    let _result = STATE.update(deps.storage, |state| -> Result<_, ContractError> {
+        if state
+            .light_client
+            .verify_commitment(message, block_height, proof)
+        {
+            Ok(state)
+        } else {
+            return Err(ContractError::VerifyFail {});
+        }  
+    });
 
-//     let amount_int: u128 = amount.u128();
+    msgs.push(CosmosMsg::Bank(BankMsg::Send{
+        to_address: recipient,
+        amount: coins(
+            amount_int, 
+            denom,
+        ),
+    }));
 
-//     let _result = STATE.update(deps.storage, |state| -> Result<_, ContractError> {
-//         if state
-//             .light_client
-//             .verify_commitment(message, block_height, proof)
-//         {
-//             msgs.push(CosmosMsg::Bank(BankMsg::Send{
-//                 to_address: recipient,
-//                 amount: coins(
-//                     amount_int, 
-//                     denom,
-//                 ),
-//             }));
-        
-//             Ok(
-//                 Response::new()
-//                 .add_attribute("method", "execute_transfer")
-//                 .add_messages(msgs)
-//             )
-//         } else {
-//             Err(ContractError::VerifyFail {})
-//         }
-//     })?;
-// }
-
-// fn execute_transfer_(
-//     deps: DepsMut<'_>,
-//     _env: Env,
-//     info: MessageInfo,
-//     recipient: String,
-//     amount: Uint128,
-//     denom: String,
-//     message: DeliverableMessage,
-//     block_height: u64,
-//     header: String,
-//     proof: String,
-// ) {
-//     if amount == Uint128::zero() {
-//         return Err(ContractError::InvalidZeroAmount {});
-//     }
-
-//     let mut msgs: Vec<CosmosMsg> = vec![];
-
-//     let amount_int: u128 = amount.parse().unwrap();
-//     let success_response: bool = query_verify(deps, _env, info, message, block_height, proof)?;
-//     if success_response.verify_success {
-//         msgs.push(CosmosMsg::Bank(BankMsg::Send{
-//             to_address: recipient,
-//             amount: coins(
-//                 amount_int, 
-//                 denom,
-//             ),
-//         }));
-    
-//         Ok(
-//             Response::new()
-//             .add_attribute("method", "send_coin_from_to")
-//             .add_messages(msgs)
-//         )
-//     } else {
-//         return Err(ContractError::VerifyFail{});
-//     }
-// }
+    Ok(
+        Response::new()
+        .add_attribute("method", "execute_transfer")
+        .add_messages(msgs)
+    )
+}
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
@@ -162,20 +121,13 @@ fn query_header(deps: Deps) -> StdResult<GetHeaderResponse> {
     })
 }
 
-// fn query_all_balance(
-//     deps:Deps,
-//     env: Env,
-// ) -> StdResult<Coin> {
-    
-//     let querier = deps.querier.query_all_balances(env.contract.address)?;
-//     Ok(querier)
-// }
-
 #[cfg(test)]
 mod test {
     use super::*;
-    use cosmwasm_std::testing::{mock_dependencies, mock_dependencies_with_balance, mock_dependencies_with_balances, mock_env, mock_info};
-    use cosmwasm_std::{coins, from_binary, Addr};
+    use cosmwasm_std::testing::{mock_dependencies_with_balance, mock_env, mock_info};
+    use cosmwasm_std::{from_binary, Coin, coin};
+    // use cosmwasm_std::testing::{mock_dependencies, mock_dependencies_with_balance, mock_env, mock_info};
+    // use cosmwasm_std::{from_binary, Addr, Coin, coin};
 
     // fn get_auth_vec() -> Vec<Addr> {
     //     let mut auth = Vec::new();
