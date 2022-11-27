@@ -90,8 +90,8 @@ fn execute_transfer(
     recipient: String,
     amount: Uint128,
     denom: String,
-    message: DeliverableMessage,
-    block_height: u64,
+    _message: DeliverableMessage,
+    _block_height: u64,
     proof: String,
 ) -> Result<Response, ContractError> {
     if amount == Uint128::zero() {
@@ -109,14 +109,14 @@ fn execute_transfer(
         } else {
             return Err(ContractError::VerifyFail {});
         }*/
-        if proof == String::from("success") {
+        if proof == *"success" {
             Ok(state)
         } else {
-            return Err(ContractError::VerifyFail {});
+            Err(ContractError::VerifyFail {})
         }
     });
 
-    if proof == String::from("success") {
+    if proof == *"success" {
         msgs.push(CosmosMsg::Bank(BankMsg::Send {
             to_address: recipient,
             amount: coins(amount_int, denom),
@@ -126,7 +126,7 @@ fn execute_transfer(
             .add_attribute("method", "execute_transfer")
             .add_messages(msgs))
     } else {
-        return Err(ContractError::VerifyFail {});
+        Err(ContractError::VerifyFail {})
     }
 }
 
@@ -159,11 +159,9 @@ mod test {
 
     #[test]
     fn query_header_test() {
-        let mut deps = mock_dependencies_with_balance(&vec![
-            coin(123, "gold"),
+        let mut deps = mock_dependencies_with_balance(&[coin(123, "gold"),
             coin(456, "silver"),
-            coin(789, "bronze"),
-        ]);
+            coin(789, "bronze")]);
         let chain_name = String::from("chain name");
         let header = String::from("abc");
         let env = mock_env();
@@ -179,11 +177,9 @@ mod test {
 
     #[test]
     fn query_balance_test() {
-        let mut deps = mock_dependencies_with_balance(&vec![
-            coin(123, "gold"),
+        let mut deps = mock_dependencies_with_balance(&[coin(123, "gold"),
             coin(456, "silver"),
-            coin(789, "bronze"),
-        ]);
+            coin(789, "bronze")]);
         let chain_name = String::from("chain name");
         let header = String::from("abc");
         let env = mock_env();
@@ -210,11 +206,9 @@ mod test {
 
     #[test]
     fn query_all_balances_test() {
-        let mut deps = mock_dependencies_with_balance(&vec![
-            coin(123, "gold"),
+        let mut deps = mock_dependencies_with_balance(&[coin(123, "gold"),
             coin(456, "silver"),
-            coin(789, "bronze"),
-        ]);
+            coin(789, "bronze")]);
         let chain_name = String::from("chain name");
         let header = String::from("abc");
         let env = mock_env();
@@ -238,11 +232,9 @@ mod test {
 
     #[test]
     fn transfer_test() {
-        let mut deps = mock_dependencies_with_balance(&vec![
-            coin(123, "gold"),
+        let mut deps = mock_dependencies_with_balance(&[coin(123, "gold"),
             coin(456, "silver"),
-            coin(789, "bronze"),
-        ]);
+            coin(789, "bronze")]);
         let chain_name = String::from("chain name");
         let header = String::from("abc");
         let env = mock_env();
@@ -252,9 +244,9 @@ mod test {
         let _res = instantiate(deps.as_mut(), env, info, msg);
         let ftt = FungibleTokenTransfer {
             token_id: String::from("gold"),
-            amount: u128::from(10u128),
+            amount: 10u128,
             receiver_address: String::from("recipient"),
-            contract_sequence: u64::from(1u64),
+            contract_sequence: 1u64,
         };
 
         let msg = ExecuteMsg::Transfer {
@@ -262,7 +254,7 @@ mod test {
             amount: Uint128::from(10u128),
             denom: String::from("gold"),
             message: DeliverableMessage::FungibleTokenTransfer(ftt),
-            block_height: u64::from(10u64),
+            block_height: 10u64,
             proof: String::from("success"),
         };
         let sub = SubMsg {
@@ -286,11 +278,9 @@ mod test {
 
     #[test]
     fn amount_zero_test() {
-        let mut deps = mock_dependencies_with_balance(&vec![
-            coin(123, "gold"),
+        let mut deps = mock_dependencies_with_balance(&[coin(123, "gold"),
             coin(456, "silver"),
-            coin(789, "bronze"),
-        ]);
+            coin(789, "bronze")]);
         let chain_name = String::from("chain name");
         let header = String::from("abc");
         let env = mock_env();
@@ -300,9 +290,9 @@ mod test {
         let _res = instantiate(deps.as_mut(), env, info, msg);
         let ftt = FungibleTokenTransfer {
             token_id: String::from("gold"),
-            amount: u128::from(10u128),
+            amount: 10u128,
             receiver_address: String::from("recipient"),
-            contract_sequence: u64::from(1u64),
+            contract_sequence: 1u64,
         };
 
         let msg = ExecuteMsg::Transfer {
@@ -310,7 +300,7 @@ mod test {
             amount: Uint128::from(0u128),
             denom: String::from("gold"),
             message: DeliverableMessage::FungibleTokenTransfer(ftt),
-            block_height: u64::from(00u64),
+            block_height: 00u64,
             proof: String::from("success"),
         };
 
@@ -329,11 +319,9 @@ mod test {
 
     #[test]
     fn verify_fail_test() {
-        let mut deps = mock_dependencies_with_balance(&vec![
-            coin(123, "gold"),
+        let mut deps = mock_dependencies_with_balance(&[coin(123, "gold"),
             coin(456, "silver"),
-            coin(789, "bronze"),
-        ]);
+            coin(789, "bronze")]);
         let chain_name = String::from("chain name");
         let header = String::from("abc");
         let env = mock_env();
@@ -343,9 +331,9 @@ mod test {
         let _res = instantiate(deps.as_mut(), env, info, msg);
         let ftt = FungibleTokenTransfer {
             token_id: String::from("gold"),
-            amount: u128::from(10u128),
+            amount: 10u128,
             receiver_address: String::from("recipient"),
-            contract_sequence: u64::from(1u64),
+            contract_sequence: 1u64,
         };
 
         let msg = ExecuteMsg::Transfer {
@@ -353,7 +341,7 @@ mod test {
             amount: Uint128::from(10u128),
             denom: String::from("gold"),
             message: DeliverableMessage::FungibleTokenTransfer(ftt),
-            block_height: u64::from(10u64),
+            block_height: 10u64,
             proof: String::from("fail"),
         };
 
