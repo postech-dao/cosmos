@@ -159,9 +159,11 @@ mod test {
 
     #[test]
     fn query_header_test() {
-        let mut deps = mock_dependencies_with_balance(&[coin(123, "gold"),
+        let mut deps = mock_dependencies_with_balance(&[
+            coin(123, "gold"),
             coin(456, "silver"),
-            coin(789, "bronze")]);
+            coin(789, "bronze"),
+        ]);
         let chain_name = String::from("chain name");
         let header = String::from("abc");
         let env = mock_env();
@@ -177,9 +179,11 @@ mod test {
 
     #[test]
     fn query_balance_test() {
-        let mut deps = mock_dependencies_with_balance(&[coin(123, "gold"),
+        let mut deps = mock_dependencies_with_balance(&[
+            coin(123, "gold"),
             coin(456, "silver"),
-            coin(789, "bronze")]);
+            coin(789, "bronze"),
+        ]);
         let chain_name = String::from("chain name");
         let header = String::from("abc");
         let env = mock_env();
@@ -206,9 +210,11 @@ mod test {
 
     #[test]
     fn query_all_balances_test() {
-        let mut deps = mock_dependencies_with_balance(&[coin(123, "gold"),
+        let mut deps = mock_dependencies_with_balance(&[
+            coin(123, "gold"),
             coin(456, "silver"),
-            coin(789, "bronze")]);
+            coin(789, "bronze"),
+        ]);
         let chain_name = String::from("chain name");
         let header = String::from("abc");
         let env = mock_env();
@@ -232,9 +238,11 @@ mod test {
 
     #[test]
     fn transfer_test() {
-        let mut deps = mock_dependencies_with_balance(&[coin(123, "gold"),
+        let mut deps = mock_dependencies_with_balance(&[
+            coin(123, "gold"),
             coin(456, "silver"),
-            coin(789, "bronze")]);
+            coin(789, "bronze"),
+        ]);
         let chain_name = String::from("chain name");
         let header = String::from("abc");
         let env = mock_env();
@@ -278,9 +286,11 @@ mod test {
 
     #[test]
     fn amount_zero_test() {
-        let mut deps = mock_dependencies_with_balance(&[coin(123, "gold"),
+        let mut deps = mock_dependencies_with_balance(&[
+            coin(123, "gold"),
             coin(456, "silver"),
-            coin(789, "bronze")]);
+            coin(789, "bronze"),
+        ]);
         let chain_name = String::from("chain name");
         let header = String::from("abc");
         let env = mock_env();
@@ -319,9 +329,11 @@ mod test {
 
     #[test]
     fn verify_fail_test() {
-        let mut deps = mock_dependencies_with_balance(&[coin(123, "gold"),
+        let mut deps = mock_dependencies_with_balance(&[
+            coin(123, "gold"),
             coin(456, "silver"),
-            coin(789, "bronze")]);
+            coin(789, "bronze"),
+        ]);
         let chain_name = String::from("chain name");
         let header = String::from("abc");
         let env = mock_env();
