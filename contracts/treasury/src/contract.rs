@@ -93,20 +93,25 @@ fn execute_transfer(
             return Err(ContractError::VerifyFail {});
         }
     });
-
-    msgs.push(CosmosMsg::Bank(BankMsg::Send{
-        to_address: recipient,
-        amount: coins(
-            amount_int, 
-            denom,
-        ),
-    }));
-
-    Ok(
-        Response::new()
-        .add_attribute("method", "execute_transfer")
-        .add_messages(msgs)
-    )
+    
+    if proof == String::from("success"){
+        msgs.push(CosmosMsg::Bank(BankMsg::Send{
+            to_address: recipient,
+            amount: coins(
+                amount_int, 
+                denom,
+            ),
+        }));
+    
+        Ok(
+            Response::new()
+            .add_attribute("method", "execute_transfer")
+            .add_messages(msgs)
+        )
+    } else {
+        return Err(ContractError::VerifyFail {});
+    }
+    
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
@@ -210,24 +215,63 @@ mod test {
             receiver_address: String::from("recipient"),
             contract_sequence: u64::from(1u64),
         };
-        let c_msg = CosmosMsg::Bank(BankMsg::Send{
-            to_address: String::from("recipient"),
-            amount: coins(
-                10, 
-                "gold",
-            ),
-        });
 
-        let msg = ExecuteMsg::Transfer { recipient: String::from("recipient"), amount: Uint128::from(10u128), denom: String::from("gold"), message: DeliverableMessage::FungibleTokenTransfer(ftt), block_height: u64::from(10u64), proof: String::from("proof") };
+        let msg = ExecuteMsg::Transfer { recipient: String::from("recipient"), amount: Uint128::from(10u128), denom: String::from("gold"), message: DeliverableMessage::FungibleTokenTransfer(ftt), block_height: u64::from(10u64), proof: String::from("success") };
         let sub = SubMsg{
             id: 0u64,
-            msg: c_msg,
+            msg: CosmosMsg::Bank(BankMsg::Send{
+                to_address: String::from("recipient"),
+                amount: coins(
+                    10, 
+                    "gold",
+                ),
+            }),
             gas_limit: None,
             reply_on: ReplyOn::Never,
         };
+        
         let res = execute(deps.as_mut(), mock_env(), mock_info("sender", &coins(2,"token")), msg);
+        //let err = execute(deps.as_mut(), mock_env(), mock_info("sender", &coins(2,"token")), msg).unwrap_err();
         assert_eq!(sub, res.unwrap().messages[0]);
+        //assert_eq!(err.to_string(), String::from("Verification failed"));
 
+    }
+
+    #[test]
+    fn verify_fail_test(){
+        let mut deps = mock_dependencies_with_balance(&vec![coin(123, "gold"), coin(456, "silver"), coin(789, "bronze")]);
+        let chain_name = String::from("chain name");
+        let header = String::from("abc");
+        let env = mock_env();
+
+        let info = mock_info("sender", &coins(2,"token"));
+        let msg = InstantiateMsg{header, chain_name};
+        let _res = instantiate(deps.as_mut(), env, info, msg);
+        let ftt = FungibleTokenTransfer {
+            token_id: String::from("gold"),
+            amount: u128::from(10u128),
+            receiver_address: String::from("recipient"),
+            contract_sequence: u64::from(1u64),
+        };
+
+        let msg = ExecuteMsg::Transfer { recipient: String::from("recipient"), amount: Uint128::from(10u128), denom: String::from("gold"), message: DeliverableMessage::FungibleTokenTransfer(ftt), block_height: u64::from(10u64), proof: String::from("fail") };
+        let sub = SubMsg{
+            id: 0u64,
+            msg: CosmosMsg::Bank(BankMsg::Send{
+                to_address: String::from("recipient"),
+                amount: coins(
+                    10, 
+                    "gold",
+                ),
+            }),
+            gas_limit: None,
+            reply_on: ReplyOn::Never,
+        };
+        
+        //let res = execute(deps.as_mut(), mock_env(), mock_info("sender", &coins(2,"token")), msg);
+        let err = execute(deps.as_mut(), mock_env(), mock_info("sender", &coins(2,"token")), msg).unwrap_err();
+        //assert_eq!(sub, res.unwrap().messages[0]);
+        //assert_eq!(err.to_string(), String::from("Verification failed"));
     }
 }
 
