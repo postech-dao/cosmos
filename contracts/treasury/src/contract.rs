@@ -72,6 +72,7 @@ fn execute_transfer(
     block_height: u64,
     proof: String,
 )  -> Result<Response, ContractError> {
+
     if amount == Uint128::zero() {
         return Err(ContractError::InvalidZeroAmount {});
     }
@@ -120,7 +121,6 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
         QueryMsg::GetHeader {} => to_binary(&query_header(deps)?),
         QueryMsg::GetBalance {denom} => to_binary(&deps.querier.query_balance(_env.contract.address, denom)?),
         QueryMsg::GetAllBalances {} => to_binary(&deps.querier.query_all_balances(_env.contract.address)?),
-        // QueryMsg::GetAllBalances {} => to_binary(&query_all_balance(deps, _env)?),
     }
 }
 
@@ -137,16 +137,22 @@ mod test {
     use cosmwasm_std::testing::{mock_dependencies_with_balance, mock_env, mock_info};
     use cosmwasm_std::{from_binary, Coin, coin, SubMsg, ReplyOn};
     use pdao_beacon_chain_common::message::FungibleTokenTransfer;
-    // use cosmwasm_std::testing::{mock_dependencies, mock_dependencies_with_balance, mock_env, mock_info};
-    // use cosmwasm_std::{from_binary, Addr, Coin, coin};
 
-    // fn get_auth_vec() -> Vec<Addr> {
-    //     let mut auth = Vec::new();
-    //     let addr1 = Addr::unchecked("Windy");
-    //     let addr2 = Addr::unchecked("Gomesy");
-    //     auth.push(addr1); // Now it knows: it's Vec<String>
-    //     auth.push(addr2);
-    // }
+    #[test]
+    fn query_header_test(){
+        let mut deps = mock_dependencies_with_balance(&vec![coin(123, "gold"), coin(456, "silver"), coin(789, "bronze")]);
+        let chain_name = String::from("chain name");
+        let header = String::from("abc");
+        let env = mock_env();
+
+        let info = mock_info("sender", &coins(2,"token"));
+        let msg = InstantiateMsg{header, chain_name};
+        let _res = instantiate(deps.as_mut(), env, info, msg);
+
+        let res = query(deps.as_ref(), mock_env(), QueryMsg::GetHeader {}).unwrap();
+        let value: GetHeaderResponse = from_binary(&res).unwrap();
+        assert_eq!(String::from("abc"), value.header);
+    }
 
     #[test]
     fn query_balance_test(){
@@ -231,10 +237,33 @@ mod test {
         };
         
         let res = execute(deps.as_mut(), mock_env(), mock_info("sender", &coins(2,"token")), msg);
-        //let err = execute(deps.as_mut(), mock_env(), mock_info("sender", &coins(2,"token")), msg).unwrap_err();
         assert_eq!(sub, res.unwrap().messages[0]);
-        //assert_eq!(err.to_string(), String::from("Verification failed"));
+    }
 
+    #[test]
+    fn amount_zero_test(){
+        let mut deps = mock_dependencies_with_balance(&vec![coin(123, "gold"), coin(456, "silver"), coin(789, "bronze")]);
+        let chain_name = String::from("chain name");
+        let header = String::from("abc");
+        let env = mock_env();
+
+        let info = mock_info("sender", &coins(2,"token"));
+        let msg = InstantiateMsg{header, chain_name};
+        let _res = instantiate(deps.as_mut(), env, info, msg);
+        let ftt = FungibleTokenTransfer {
+            token_id: String::from("gold"),
+            amount: u128::from(10u128),
+            receiver_address: String::from("recipient"),
+            contract_sequence: u64::from(1u64),
+        };
+
+        let msg = ExecuteMsg::Transfer { recipient: String::from("recipient"), amount: Uint128::from(0u128), denom: String::from("gold"), message: DeliverableMessage::FungibleTokenTransfer(ftt), block_height: u64::from(00u64), proof: String::from("success") };
+        
+        let err = execute(deps.as_mut(), mock_env(), mock_info("sender", &coins(2,"token")), msg).unwrap_err();
+        match err {
+            ContractError::InvalidZeroAmount {} => {}
+            e => panic!("unexpected error: {}", e),
+        }
     }
 
     #[test]
@@ -255,92 +284,11 @@ mod test {
         };
 
         let msg = ExecuteMsg::Transfer { recipient: String::from("recipient"), amount: Uint128::from(10u128), denom: String::from("gold"), message: DeliverableMessage::FungibleTokenTransfer(ftt), block_height: u64::from(10u64), proof: String::from("fail") };
-        let sub = SubMsg{
-            id: 0u64,
-            msg: CosmosMsg::Bank(BankMsg::Send{
-                to_address: String::from("recipient"),
-                amount: coins(
-                    10, 
-                    "gold",
-                ),
-            }),
-            gas_limit: None,
-            reply_on: ReplyOn::Never,
-        };
         
-        //let res = execute(deps.as_mut(), mock_env(), mock_info("sender", &coins(2,"token")), msg);
         let err = execute(deps.as_mut(), mock_env(), mock_info("sender", &coins(2,"token")), msg).unwrap_err();
-        //assert_eq!(sub, res.unwrap().messages[0]);
-        //assert_eq!(err.to_string(), String::from("Verification failed"));
+        match err {
+            ContractError::VerifyFail {} => {}
+            e => panic!("unexpected error: {}", e),
+        }
     }
 }
-
-//     #[test]
-
-//     fn proper_initialization() {
-//         let mut deps = mock_dependencies();
-//         let chain_name = "chain name";
-//         let header = Header("abc");
-
-//         let msg = InstantiateMsg { header, chain_name };
-//         let info = mock_info("creator", &coins(1000, "earth"));
-
-//         // we can just call .unwrap() to assert this was a success
-//         let res = instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
-//         assert_eq!(0, res.messages.len());
-
-//         // it worked, let's query the state
-//         let res = query(deps.as_ref(), mock_env(), QueryMsg::GetCount {}).unwrap();
-//         let value: CountResponse = from_binary(&res).unwrap();
-//         assert_eq!(17, value.count);
-//     }
-
-//     #[test]
-//     fn increment() {
-//         let mut deps = mock_dependencies();
-//         let auth = get_auth_vec();
-
-//         let msg = InstantiateMsg { count: 17, auth };
-//         let info = mock_info("creator", &coins(2, "token"));
-//         let _res = instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
-
-//         // beneficiary can release it
-//         let info = mock_info("Gomesy", &coins(2, "token"));
-//         let msg = ExecuteMsg::Increment { count: 2 };
-//         let _res = execute(deps.as_mut(), mock_env(), info, msg).unwrap();
-
-//         // should increase counter by 1
-//         let res = query(deps.as_ref(), mock_env(), QueryMsg::GetCount {}).unwrap();
-//         let value: CountResponse = from_binary(&res).unwrap();
-//         assert_eq!(19, value.count);
-//     }
-
-//     #[test]
-//     fn reset() {
-//         let mut deps = mock_dependencies();
-//         let auth = get_auth_vec();
-
-//         let msg = InstantiateMsg { count: 17, auth };
-//         let info = mock_info("creator", &coins(2, "token"));
-//         let _res = instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
-
-//         // beneficiary can release it
-//         let unauth_info = mock_info("anyone", &coins(2, "token"));
-//         let msg = ExecuteMsg::Reset { count: 5 };
-//         let res = execute(deps.as_mut(), mock_env(), unauth_info, msg);
-//         match res {
-//             Err(ContractError::Unauthorized {}) => {}
-//             _ => panic!("Must return unauthorized error"),
-//         }
-
-//         // only the original creator can reset the counter
-//         let auth_info = mock_info("Windy", &coins(2, "token"));
-//         let msg = ExecuteMsg::Reset { count: 5 };
-//         let _res = execute(deps.as_mut(), mock_env(), auth_info, msg).unwrap();
-
-//         // should now be 5
-//         let res = query(deps.as_ref(), mock_env(), QueryMsg::GetCount {}).unwrap();
-//         let value: CountResponse = from_binary(&res).unwrap();
-//         assert_eq!(5, value.count);
-//     }
-// }
