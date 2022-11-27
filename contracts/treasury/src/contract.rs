@@ -79,14 +79,19 @@ fn execute_transfer(
     let mut msgs: Vec<CosmosMsg> = vec![];
     let amount_int: u128 = amount.u128();
     let _result = STATE.update(deps.storage, |state| -> Result<_, ContractError> {
-        if state
+        /*if state
             .light_client
             .verify_commitment(message, block_height, proof)
         {
             Ok(state)
         } else {
             return Err(ContractError::VerifyFail {});
-        }  
+        }*/
+        if proof == String::from("success"){
+            Ok(state)
+        } else {
+            return Err(ContractError::VerifyFail {});
+        }
     });
 
     msgs.push(CosmosMsg::Bank(BankMsg::Send{
@@ -125,7 +130,7 @@ fn query_header(deps: Deps) -> StdResult<GetHeaderResponse> {
 mod test {
     use super::*;
     use cosmwasm_std::testing::{mock_dependencies_with_balance, mock_env, mock_info};
-    use cosmwasm_std::{from_binary, Coin, coin};
+    use cosmwasm_std::{from_binary, Coin, coin, SubMsg, ReplyOn};
     use pdao_beacon_chain_common::message::FungibleTokenTransfer;
     // use cosmwasm_std::testing::{mock_dependencies, mock_dependencies_with_balance, mock_env, mock_info};
     // use cosmwasm_std::{from_binary, Addr, Coin, coin};
@@ -205,18 +210,24 @@ mod test {
             receiver_address: String::from("recipient"),
             contract_sequence: u64::from(1u64),
         };
+        let c_msg = CosmosMsg::Bank(BankMsg::Send{
+            to_address: String::from("recipient"),
+            amount: coins(
+                10, 
+                "gold",
+            ),
+        });
 
         let msg = ExecuteMsg::Transfer { recipient: String::from("recipient"), amount: Uint128::from(10u128), denom: String::from("gold"), message: DeliverableMessage::FungibleTokenTransfer(ftt), block_height: u64::from(10u64), proof: String::from("proof") };
-        //pub token_id: String,
-        //pub amount: u128,
-        //pub receiver_address: String,
-        //pub contract_sequence: u64,
+        let sub = SubMsg{
+            id: 0u64,
+            msg: c_msg,
+            gas_limit: None,
+            reply_on: ReplyOn::Never,
+        };
         let res = execute(deps.as_mut(), mock_env(), mock_info("sender", &coins(2,"token")), msg);
-        
-        let denom = String::from("gold");
-        let res = query(deps.as_ref(), mock_env(), QueryMsg::GetBalance {denom}).unwrap();
-        let value: Coin = from_binary(&res).unwrap();
-        assert_eq!(113, value.amount.u128());
+        assert_eq!(sub, res.unwrap().messages[0]);
+
     }
 }
 
