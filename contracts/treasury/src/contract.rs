@@ -83,6 +83,7 @@ pub fn execute_light_client_update(
     Ok(Response::new().add_attribute("method", "execute_light_client_update"))
 }
 
+#[allow(clippy::too_many_arguments)]
 fn execute_transfer(
     deps: DepsMut,
     _env: Env,
