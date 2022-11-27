@@ -62,7 +62,7 @@ pub fn execute_light_client_update(
 }
 
 fn execute_transfer(
-    deps: DepsMut<'_>,
+    deps: DepsMut,
     _env: Env,
     _info: MessageInfo,
     recipient: String,
@@ -126,6 +126,7 @@ mod test {
     use super::*;
     use cosmwasm_std::testing::{mock_dependencies_with_balance, mock_env, mock_info};
     use cosmwasm_std::{from_binary, Coin, coin};
+    use pdao_beacon_chain_common::message::FungibleTokenTransfer;
     // use cosmwasm_std::testing::{mock_dependencies, mock_dependencies_with_balance, mock_env, mock_info};
     // use cosmwasm_std::{from_binary, Addr, Coin, coin};
 
@@ -186,6 +187,36 @@ mod test {
 
         assert_eq!(coin(789, "bronze"), value[2]);
         assert_eq!(789, value[2].amount.u128());
+    }
+
+    #[test]
+    fn transfer_test(){
+        let mut deps = mock_dependencies_with_balance(&vec![coin(123, "gold"), coin(456, "silver"), coin(789, "bronze")]);
+        let chain_name = String::from("chain name");
+        let header = String::from("abc");
+        let env = mock_env();
+
+        let info = mock_info("sender", &coins(2,"token"));
+        let msg = InstantiateMsg{header, chain_name};
+        let _res = instantiate(deps.as_mut(), env, info, msg);
+        let ftt = FungibleTokenTransfer {
+            token_id: String::from("gold"),
+            amount: u128::from(10u128),
+            receiver_address: String::from("recipient"),
+            contract_sequence: u64::from(1u64),
+        };
+
+        let msg = ExecuteMsg::Transfer { recipient: String::from("recipient"), amount: Uint128::from(10u128), denom: String::from("gold"), message: DeliverableMessage::FungibleTokenTransfer(ftt), block_height: u64::from(10u64), proof: String::from("proof") };
+        //pub token_id: String,
+        //pub amount: u128,
+        //pub receiver_address: String,
+        //pub contract_sequence: u64,
+        let res = execute(deps.as_mut(), mock_env(), mock_info("sender", &coins(2,"token")), msg);
+        
+        let denom = String::from("gold");
+        let res = query(deps.as_ref(), mock_env(), QueryMsg::GetBalance {denom}).unwrap();
+        let value: Coin = from_binary(&res).unwrap();
+        assert_eq!(113, value.amount.u128());
     }
 }
 
